@@ -8,7 +8,7 @@ uniform sampler2D master;
 uniform vec2 statesize;
 uniform int reset;
 
-const float BASE = 255.0;
+const float BASE = 256.0;
 
 vec4 encode(float value) {
   vec4 encoded;
@@ -25,17 +25,17 @@ float decode(vec4 data) {
   value += data.y*BASE;
   value += data.z*BASE*BASE;
   value += data.w*BASE*BASE*BASE;
-  return floor(value*BASE;
+  return floor(value*BASE);
 }
 
 void main() {
   if (reset == 0) {
-    vec4 sampledData = texture2D(state, index / statesize);
+    vec4 sampledData = texture2D(state, index);
     float value = decode(sampledData);
     value = floor(value / 2.0);
     gl_FragColor = encode(value);
   }
   else {
-    gl_FragColor = texture2D(master, index / statesize);
+    gl_FragColor = texture2D(master, statesize);
   }
 }

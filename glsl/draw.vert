@@ -7,7 +7,7 @@ uniform vec2 statesize;
 uniform vec2 windowsize;
 uniform vec2 offset;
 
-const float POINT_SIZE = 10.0;
+const float POINT_SIZE = 3.0;
 const float BASE = 256.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
 
@@ -22,7 +22,7 @@ vec2 decodePoint(vec4 data) {
 
 void main() {
   vec4 pointData = texture2D(points, index / statesize);
-  vec2 point = decodePoint(pointData);
+  vec2 point = decodePoint(pointData)-0.7*vec2(1.0,1.0);
   gl_Position = vec4(point, 0, 1);
   gl_PointSize = POINT_SIZE;
 }

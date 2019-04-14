@@ -1,4 +1,4 @@
-const BASE = 255;
+const BASE = 256;
 function encodeSwitch(value) {
     var digits = [];
     var quotient = value;
@@ -86,8 +86,8 @@ class App {
             switchesMaster: makeEmptyTexture(this.gl)
         };
         this.frameBuffers = {
-            points: initFrameBuffer(this.gl, this.textures.points0),
-            switches: initFrameBuffer(this.gl, this.textures.switches)
+            points: initFrameBuffer(this.gl, this.textures.points1),
+            switches: initFrameBuffer(this.gl, this.textures.switches1)
         };
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switchesMaster);
         this.gl.texImage2D(this.gl.TEXTURE_2D,
@@ -197,9 +197,9 @@ class App {
         const mastersUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'master');
         this.gl.uniform1i(mastersUnifLoc, 1);
         stateSizeUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'statesize');
-        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from([32,32]));
+        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from(this.stateSize));
         const resetUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'reset');
-        this.gl.uniform1i(resetUnifLoc, this.shoulReset);
+        this.gl.uniform1i(resetUnifLoc, 0);
 
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         tmp = this.textures.switches1;
@@ -226,12 +226,11 @@ class App {
         const pointsUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'points');
         this.gl.uniform1i(pointsUnifLoc, 0);
         const stateSizeUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'statesize');
-        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from([32,32]));
+        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from(this.stateSize));
         const winSizeUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'windowsize');
         this.gl.uniform2fv(winSizeUnifLoc, Float32Array.from([1024,1024]));
         const offsetUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'offset');
         this.gl.uniform2fv(offsetUnifLoc, Float32Array.from([0,0]));
-
         this.gl.drawArrays(this.gl.POINTS, 0, this.k);
     }
 }

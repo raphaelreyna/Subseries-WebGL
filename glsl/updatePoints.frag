@@ -44,11 +44,11 @@ vec2 decodePoint(vec4 data) {
 }
 
 void main() {
-  vec4 pointData = texture2D(points, index / statesize);
-  vec4 switchData = texture2D(switches, index / statesize);
+  vec4 pointData = texture2D(points, index);
+  vec4 switchData = texture2D(switches, index);
   vec2 p = decodePoint(pointData);
   float s = decodeSwitch(switchData);
   float sw = getSwitchFromCode(s);
-  p += 0.5*sw*newTerm;
+  p += sw*newTerm;
   gl_FragColor = encodePoint(p);
 }

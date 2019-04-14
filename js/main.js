@@ -12,16 +12,16 @@ for (var i = 0; i < terms.length; i++) {
     terms[i] = Float32Array.from([parseFloat(term[0]), parseFloat(term[1])]);
 }
 
-var app = new App(canvas, 1024, terms);
+var app = new App(canvas, 2**12, terms);
 var counter = 0;
 
 app.timer = setInterval(function(){
     const i = counter % termData.length;
     counter++;
 
-    const term = [0.5*termData[i][0], 0.5*termData[i][1]];
+    const term = [termData[i][0],  termData[i][1]];
 
     app.step(Float32Array.from(term));
     app.draw();
-}, 1000);
+}, 10);
 
