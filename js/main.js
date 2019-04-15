@@ -1,4 +1,4 @@
-const canvas = document.getElementById('gol-canvas');
+const canvas = document.getElementById('glCanvas');
 
 var xhr = new XMLHttpRequest();
 xhr.open("GET", "terms.csv");
@@ -12,7 +12,9 @@ for (var i = 0; i < terms.length; i++) {
     terms[i] = Float32Array.from([parseFloat(term[0]), parseFloat(term[1])]);
 }
 
-var app = new App(canvas, 2**12, terms);
+const k = 12;
+
+var app = new App(canvas, 2**k, terms);
 var counter = 0;
 
 app.timer = setInterval(function(){
