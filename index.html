@@ -3,10 +3,26 @@
 		    <title>Subseries</title>
 	  </head>
 	  <body>
+        <form id="form">
+            Function:
+            <input type="text" id="fxn" value="1/(1-x)">
+            <br>
+            Real:
+            <input type="number" id="real" value=0.5>
+            <br>
+            Imaginary:
+            <input type="number" id="imag" value=0.5>
+            <br>
+            <button onclick="run()">Plot</button>
+        </form>
+        <div id="msg"></div>
+        <br>
 		    <canvas  style="background-color: black" id="glCanvas" width="1024" height="1024">
 			      Your browser does not support HTML5
 		    </canvas>
 		    <br/>
+        <script src="dependencies/math.js" ></script>
+        <script src="dependencies/math.diff.js"></script>
 		    <script src="js/gl-matrix.js"></script>
 		    <script src="js/misc.js"></script>
 		    <script src="js/gl-helper.js"></script>

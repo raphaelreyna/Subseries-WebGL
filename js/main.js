@@ -1,29 +1,40 @@
 const canvas = document.getElementById('glCanvas');
 
-var xhr = new XMLHttpRequest();
-xhr.open("GET", "terms.csv");
-xhr.send();
-var csvFile = xhr.responseText;
-var termData = $.csv.toArrays(fetch("terms.csv"));
-
-var terms = [];
-for (var i = 0; i < terms.length; i++) {
-    const term = termData[i];
-    terms[i] = Float32Array.from([parseFloat(term[0]), parseFloat(term[1])]);
-}
-
 const k = 12;
+var app = new App(canvas, 2**k);
 
-var app = new App(canvas, 2**k, terms);
-var counter = 0;
+const zero = {x:0};
 
-app.timer = setInterval(function(){
-    const i = counter % termData.length;
-    counter++;
+function run(){
+    const fString = document.getElementById("fxn").value;
+    const real = document.getElementById("real").value;
+    const imag = document.getElementById("imag").value;
+    const z0 = {re:real, im:imag};
 
-    const term = [termData[i][0],  termData[i][1]];
+    var counter = 1;
+    var factorial = 1;
+    var coeff = 0;
+    var zn = {re:1,im:0};
+    var term = 0;
 
-    app.step(Float32Array.from(term));
-    app.draw();
-}, 10);
+    var f = math.parse(fString);
 
+    app.timer = setInterval(function(){
+        coeff = f.eval(zero)/factorial;
+        term = scalarComplexMult(coeff, zn);
+        factorial *= counter;
+        counter++;
+        f = math.derivative(f,'x');
+        zn = complexMult(z0, zn);
+
+        app.step(Float32Array.from([term.re,term.im]));
+        app.draw();
+    }, 2);
+
+    app.endTimer = setInterval(function(){
+        if (counter === k+1) {
+            clearInterval(app.timer);
+        }
+    }, 1);
+    document.getElementById("msg").innerHTML = "You will need to refresh this page to run again.";
+}
