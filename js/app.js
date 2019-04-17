@@ -1,4 +1,7 @@
 const BASE = 256;
+
+// Encode the switch integer as a 4 digit base 256 number.
+// This encoding allows us to store the integers as a rgba texture.
 function encodeSwitch(value) {
     var digits = [];
     var quotient = value;
@@ -9,9 +12,11 @@ function encodeSwitch(value) {
     return digits;
 }
 
+// Encode a complex number as a 4 digit base 256 number.
+// This encoding allows us to store the numbers as a rgba texture.
 function encodePoint(re, im, scale, offset) {
-    const normalizedRe = scale*re - offset;
-    const normalizedIm = scale*im - offset;
+    const normalizedRe = scale*(re - offset[0]);
+    const normalizedIm = scale*(im - offset[1]);
     const encodedPoint = [normalizedRe % BASE,
                           Math.floor(normalizedRe / BASE),
                           normalizedIm % BASE,
@@ -19,218 +24,244 @@ function encodePoint(re, im, scale, offset) {
     return encodedPoint;
 }
 
+// Initialize indexes as [x0,y0,x1,y1,x2,y2,...].
+// Initialize all points as 0+0i, encoded.
+// Initialize switches as [a0,b0,c0,d0,a1,b1,c1,d2,...],
+// where a,b,c,d are the 4 base 256 digits of the encoded switch integer.
+function createInitialData(stateSize, windowSize, offset) {
+    const size = 4*stateSize[0]*stateSize[1];
+    var data = {
+        indexes: [],
+        switches: new Uint8Array(size),
+        points: new Uint8Array(size),
+    };
+    const encodedZero = encodePoint(0.0, 0.0, 256*256/windowSize, offset);
+    var switchCode = 0;
+    for (var y = 0; y < stateSize[1]; y++) {
+        for (var x = 0; x < stateSize[0]; x++) {
+            const j = y*stateSize[0]*2+x*2;
+            const i = y*stateSize[0]*4+x*4;
+            const digits = encodeSwitch(switchCode);
+            switchCode++;
+            data.indexes[j] = x;
+            data.indexes[j+1] = y;
+
+            data.switches[i] = digits[0];
+            data.switches[i+1] = digits[1];
+            data.switches[i+2] = digits[2];
+            data.switches[i+3] = digits[3];
+
+            data.points[i] = encodedZero[0];
+            data.points[i+1] = encodedZero[1];
+            data.points[i+2] = encodedZero[2];
+            data.points[i+3] = encodedZero[3];
+        }
+    }
+    return data;
+}
+
 class App {
     constructor(canvas, k){
+        // This is for a k-subautomatic subseries.
         this.k = k;
+
+        // Grab the canvas and its size then compute the scale.
         this.canvas = canvas;
         this.viewSize = new Float32Array([canvas.width, canvas.height]);
-        this.stateSize = new Float32Array([Math.ceil(Math.sqrt(k)), Math.floor(Math.sqrt(k))]);
         this.scale = Math.floor(Math.pow(BASE, 2) / Math.max(canvas.width, canvas.height));
-        this.shouldReset = 1;
+
+        // Compute the size of the state textures
+        this.stateSize = new Float32Array([Math.ceil(Math.sqrt(2**k)), Math.floor(Math.sqrt(2**k))]);
+
+        // Keep track of the switches and when to reset them.
+        this.shouldReset = 0;
         this.counter = 0;
-        this.timer = null;
-        this.lastTick = now();
+
+        // Grab the WebGL context and check if it does what we need.
         this.gl = initGL(canvas);
-        if (this.gl == null) {
-            alert('Could not initialize WebGL!');
-            throw new Error('No WebGL');
-        }
-        if (this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
-            var msg = 'Vertex shader texture access not available.' +
-                'Try again on another platform.';
-            alert(msg);
-            throw new Error(msg);
-        }
-        const drawVertShader = compileShader(this.gl, this.gl.VERTEX_SHADER, fetch('glsl/draw.vert'));
-        const drawFragShader = compileShader(this.gl, this.gl.FRAGMENT_SHADER, fetch('glsl/draw.frag'));
-        const updateVertShader = compileShader(this.gl, this.gl.VERTEX_SHADER, fetch('glsl/update.vert'));
-        const updatePointsFragShader = compileShader(this.gl, this.gl.FRAGMENT_SHADER, fetch('glsl/updatePoints.frag'));
-        const updateSwitchesFragShader = compileShader(this.gl, this.gl.FRAGMENT_SHADER, fetch('glsl/updateSwitches.frag'));
+        const gl = this.gl;
+        checkIfOK(gl);
+
+        // Initialize the data to send to the GPU.
+        const initData = createInitialData(this.stateSize, 2.3, [-0.640625,-0.3125]);
+
+        // Create the programs from their shaders' paths.
         this.programs = {
-            draw: createProgram(this.gl, drawVertShader, drawFragShader),
-            updateSwitches: createProgram(this.gl, updateVertShader, updateSwitchesFragShader),
-            updatePoints: createProgram(this.gl, updateVertShader, updatePointsFragShader)
-        };
-        var indexes = [];
-        var switches = new Uint8Array(4*this.stateSize[0]*this.stateSize[1]);
-        var points = new Uint8Array(4*this.stateSize[0]*this.stateSize[1]);
-        const encodedZero = encodePoint(0.0, 0.0, this.scale, 0);
-        var switchCode = 0;
-        for (var y = 0; y < this.stateSize[1]; y++) {
-            for (var x = 0; x < this.stateSize[0]; x++) {
-                const j = y*this.stateSize[0]*2+x*2;
-                const i = y*this.stateSize[0]*4+x*4;
-                indexes[j] = x;
-                indexes[j+1] = y;
-                const digits = encodeSwitch(switchCode);
-                switches[i] = digits[0];
-                switches[i+1] = digits[1];
-                switches[i+2] = digits[2];
-                switches[i+3] = digits[3];
-                switchCode++;
-                points[i] = encodedZero[0];
-                points[i+1] = encodedZero[1];
-                points[i+2] = encodedZero[2];
-                points[i+3] = encodedZero[3];
-            }
-        }
+            draw: createProgram(gl,
+                                'glsl/draw.vert',
+                                'glsl/draw.frag'),
+            updateSwitches: createProgram(gl,
+                                          'glsl/update.vert',
+                                          'glsl/updateSwitches.frag'),
+            updatePoints: createProgram(gl,
+                                        'glsl/update.vert',
+                                        'glsl/updatePoints.frag')};
+
+        // Initialize the buffers and send their data over to the GPU.
         this.buffers = {
-            updateQuad: squareBuffer(this.gl),
-            indexes: initArrayBuffer(this.gl, indexes)
-        };
+            updateQuad: squareBuffer(gl),
+            indexes: initArrayBuffer(gl, initData.indexes)};
+
+        // Initialize the textures and send their initial data over to the GPU.
         this.textures = {
-            points0: makeEmptyTexture(this.gl),
-            points1: makeEmptyTexture(this.gl),
-            switches0: makeEmptyTexture(this.gl),
-            switches1: makeEmptyTexture(this.gl),
-            switchesMaster: makeEmptyTexture(this.gl)
-        };
+            points0: makeTexture(gl,
+                                 this.stateSize,
+                                 initData.points),
+            points1: makeTexture(gl,
+                                 this.stateSize),
+            switches0: makeTexture(gl,
+                                   this.stateSize,
+                                   initData.switches),
+            switches1: makeTexture(gl,
+                                   this.stateSize),
+            switchesMaster: makeTexture(gl,
+                                        this.stateSize,
+                                        initData.switches)};
+
+        // Initialize the framebuffers for rendering offscreen.
         this.frameBuffers = {
-            points: initFrameBuffer(this.gl, this.textures.points1),
-            switches: initFrameBuffer(this.gl, this.textures.switches1)
-        };
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switchesMaster);
-        this.gl.texImage2D(this.gl.TEXTURE_2D,
-                           0,
-                           this.gl.RGBA,
-                           this.stateSize[0],
-                           this.stateSize[1],
-                           0,
-                           this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE,
-                           switches);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.points0);
-        this.gl.texImage2D(this.gl.TEXTURE_2D,
-                           0,
-                           this.gl.RGBA,
-                           this.stateSize[0],
-                           this.stateSize[1],
-                           0,
-                           this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE,
-                           points);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.points1);
-        this.gl.texImage2D(this.gl.TEXTURE_2D,
-                           0,
-                           this.gl.RGBA,
-                           this.stateSize[0],
-                           this.stateSize[1],
-                           0,
-                           this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE,
-                           null);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switches0);
-        this.gl.texImage2D(this.gl.TEXTURE_2D,
-                           0,
-                           this.gl.RGBA,
-                           this.stateSize[0],
-                           this.stateSize[1],
-                           0,
-                           this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE,
-                           switches);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switches1);
-        this.gl.texImage2D(this.gl.TEXTURE_2D,
-                           0,
-                           this.gl.RGBA,
-                           this.stateSize[0],
-                           this.stateSize[1],
-                           0,
-                           this.gl.RGBA,
-                           this.gl.UNSIGNED_BYTE,
-                           switches);
-    }
+            points: initFrameBuffer(gl, this.textures.points1),
+            switches: initFrameBuffer(gl, this.textures.switches1)};
+    };
 
-    step(term) {
-        const rightNow = now();
-        if (rightNow != this.lastTick) {
-            this.lastTick = rightNow;
-        }
+    updateSwitches() {
+        const gl = this.gl;
+        const program = this.programs.updateSwitches;
+        const t = this.textures;
 
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers.points);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER,
-                                     this.gl.COLOR_ATTACHMENT0,
-                                     this.gl.TEXTURE_2D,
-                                     this.textures.points1,
-                                     0);
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.points0);
-        this.gl.activeTexture(this.gl.TEXTURE0+1);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switches0);
-        this.gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
-        this.gl.useProgram(this.programs.updatePoints);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.updateQuad);
-        setupAttributePointer(this.gl, this.programs.updatePoints, 'quad', 2, 0, 0);
-        const pointsUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'points');
-        this.gl.uniform1i(pointsUnifLoc, 0);
-        const switchesUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'switches');
-        this.gl.uniform1i(switchesUnifLoc, 1);
-        var stateSizeUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'stateSize');
-        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from(this.stateSize));
-        const winSizeUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'windowSize');
-        this.gl.uniform2fv(winSizeUnifLoc, Float32Array.from([1024,1024]));
-        const newTermUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'newTerm');
-        this.gl.uniform2fv(newTermUnifLoc, term);
-        const offsetUnifLoc = this.gl.getUniformLocation(this.programs.updatePoints, 'offset');
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-        var tmp = this.textures.points1;
-        this.textures.points1 = this.textures.points0;
-        this.textures.points0 = tmp;
+        // Tell WebGL to use the updateSwitches program.
+        gl.useProgram(program);
 
+        // Bind the switches framebuffer for offscreen rendering.
+        // Then, set it to render to into the switches1 texture.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers.switches);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                                gl.COLOR_ATTACHMENT0,
+                                gl.TEXTURE_2D,
+                                t.switches1,
+                                0);
 
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers.switches);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER,
-                                     this.gl.COLOR_ATTACHMENT0,
-                                     this.gl.TEXTURE_2D,
-                                     this.textures.switches1,
-                                     0);
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switches0);
-        this.gl.activeTexture(this.gl.TEXTURE0+1);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.switchesMaster);
-        this.gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
-        this.gl.useProgram(this.programs.updateSwitches);
-        setupAttributePointer(this.gl, this.programs.updateSwitches, 'quad', 2, 0, 0);
-        const stateUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'state');
-        this.gl.uniform1i(stateUnifLoc, 0);
-        const mastersUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'master');
-        this.gl.uniform1i(mastersUnifLoc, 1);
-        stateSizeUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'statesize');
-        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from(this.stateSize));
-        const resetUnifLoc = this.gl.getUniformLocation(this.programs.updateSwitches, 'reset');
-        this.gl.uniform1i(resetUnifLoc, 0);
+        // Bind the buffer that contains the corners of the square we are drawing our texture onto.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.updateQuad);
 
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-        tmp = this.textures.switches1;
-        this.textures.switches1 = this.textures.switches0;
-        this.textures.switches0 = tmp;
+        // Bind switches0 and masterSwitches textures.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
+        gl.activeTexture(gl.TEXTURE0+1);
+        gl.bindTexture(gl.TEXTURE_2D, t.switchesMaster);
 
+        // Render into a viewport with a size of stateSize.
+        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
+
+        // Send attribute and uniform data to GPU.
+        setupAttributePointer(gl, program, 'quad', 2);
+        setupUniform(gl, program, 'state', 'li', 0);
+        setupUniform(gl, program, 'master', 'li',1);
+        setupUniform(gl, program, 'reset', 'li', this.shouldReset);
+
+        // Render updates to texture offscreen.
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Swap switches textures.
+        // New becomes old.
+        var tmp = t.switches1;
+        t.switches1 = t.switches0;
+        t.switches0 = tmp;
+
+        // Setup reset for next time.
         if (this.shouldReset === 1) {
             this.shouldReset = 0;
         }
         this.counter++;
-        if (this.counter % this.k === 0) {
+        if (this.counter % 2**this.k === 0) {
             this.shouldReset = 1
         }
     }
 
+    addTerm(term) {
+        const gl = this.gl;
+        const program = this.programs.updatePoints;
+        const t = this.textures;
+
+        // Tell WebGL to use the updateSwitches program.
+        gl.useProgram(program);
+
+        // Bind the points framebuffer for offscreen rendering.
+        // Then, set it to render to into the points1 texture.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers.points);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                                gl.COLOR_ATTACHMENT0,
+                                gl.TEXTURE_2D,
+                                t.points1,
+                                0);
+
+        // Bind the buffer that contains the corners of the square we are drawing our texture onto.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.updateQuad);
+
+        // Bind textures for points and switches.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, t.points0);
+        gl.activeTexture(gl.TEXTURE0+1);
+        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
+
+        // Render into a viewport with a size of stateSize.
+        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
+
+        // Send uniform and attribute data to the GPU.
+        setupAttributePointer(gl, program, 'quad', 2, 0, 0);
+        setupUniform(gl, program, 'points', 'li', 0);
+        setupUniform(gl, program, 'switches', 'li', 1);
+        setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
+        setupUniform(gl, program, 'windowsize', '1f', 3.6);
+        setupUniform(gl, program, 'newTerm', '2fv', term);
+        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
+
+        // Render updates to texture offscreen.
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Swap switches textures.
+        // New becomes old.
+        var tmp = t.points1;
+        t.points1 = t.points0;
+        t.points0 = tmp;
+    }
+
+    step(term) {
+        this.addTerm(term);
+        this.updateSwitches();
+    }
+
     draw() {
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.points0);
-        this.gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
-        this.gl.useProgram(this.programs.draw);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.indexes);
-        setupAttributePointer(this.gl, this.programs.draw, 'index', 2, 0, 0);
-        const pointsUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'points');
-        this.gl.uniform1i(pointsUnifLoc, 0);
-        const stateSizeUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'statesize');
-        this.gl.uniform2fv(stateSizeUnifLoc, Float32Array.from(this.stateSize));
-        const winSizeUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'windowsize');
-        this.gl.uniform2fv(winSizeUnifLoc, Float32Array.from([1024,1024]));
-        const offsetUnifLoc = this.gl.getUniformLocation(this.programs.draw, 'offset');
-        this.gl.uniform2fv(offsetUnifLoc, Float32Array.from([0,0]));
-        this.gl.drawArrays(this.gl.POINTS, 0, this.k);
+        const gl = this.gl;
+        const program = this.programs.draw;
+        const t = this.textures;
+
+        // Tell WebGL to use the updateSwitches program.
+        gl.useProgram(program);
+
+        // Bind the default framebuffer for rendering to the display.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // Bind the buffer that contains the indexes for the points.
+        // One index pair per point/subseries.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.indexes);
+
+        // Bind texture containing point data.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, t.points0);
+
+        // Render into a viewport the size of the canvas.
+        gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
+
+        // Send uniform and attribute data to the GPU.
+        setupAttributePointer(gl, program, 'index', 2, 0, 0);
+        setupUniform(gl, program, 'points', '1i', 0);
+        setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
+        setupUniform(gl, program, 'windowsize', '1f', 3.36);
+        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
+        setupUniform(gl, program, 'translation', '2fv', [-0.5*0.8, -0.5*1.0]);
+
+        // Render to the screen.
+        gl.drawArrays(gl.POINTS, 0, 2**this.k);
     }
 }

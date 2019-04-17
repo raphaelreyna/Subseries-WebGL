@@ -1,9 +1,11 @@
 const canvas = document.getElementById('glCanvas');
 
 const k = 12;
-var app = new App(canvas, 2**k);
+var app = new App(canvas, k);
 
 const zero = {x:0};
+var terms = [];
+var counter = 0;
 
 function run(){
     const fString = document.getElementById("fxn").value;
@@ -11,7 +13,7 @@ function run(){
     const imag = document.getElementById("imag").value;
     const z0 = {re:real, im:imag};
 
-    var counter = 1;
+    var c = 1;
     var factorial = 1;
     var coeff = 0;
     var zn = {re:1,im:0};
@@ -19,15 +21,19 @@ function run(){
 
     var f = math.parse(fString);
 
-    app.timer = setInterval(function(){
+    for (var i = 0; i < k+2; i++) {
         coeff = f.eval(zero)/factorial;
         term = scalarComplexMult(coeff, zn);
-        factorial *= counter;
-        counter++;
+        factorial *= c;
+        c++;
         f = math.derivative(f,'x');
         zn = complexMult(z0, zn);
-
-        app.step(Float32Array.from([term.re,term.im]));
+        terms.push(term);
+    }
+    app.timer = setInterval(function(){
+        const t = terms[counter];
+        counter++;
+        app.step([t.re,t.im]);
         app.draw();
     }, 2);
 

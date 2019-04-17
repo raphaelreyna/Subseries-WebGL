@@ -16,6 +16,19 @@ function initGL(canvas) {
     return gl;
 }
 
+function checkIfOK(gl) {
+    if (gl == null) {
+        alert('Could not initialize WebGL!');
+        throw new Error('No WebGL');
+    }
+    if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
+        var msg = 'Vertex shader texture access not available.' +
+            'Try again on another platform.';
+        alert(msg);
+        throw new Error(msg);
+    }
+}
+
 function compileShader(gl, type, source) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -27,10 +40,16 @@ function compileShader(gl, type, source) {
     return shader;
 }
 
-function createProgram(gl, vertexShader, fragmentShader) {
+function createProgram(gl, vertexShaderPath, fragmentShaderPath) {
+    const vShader = compileShader(gl,
+                                  gl.VERTEX_SHADER,
+                                  fetch(vertexShaderPath));
+    const fShader = compileShader(gl,
+                                  gl.FRAGMENT_SHADER,
+                                  fetch(fragmentShaderPath));
     var program = gl.createProgram();
-	  gl.attachShader(program, vertexShader);
-	  gl.attachShader(program, fragmentShader);
+	  gl.attachShader(program, vShader);
+	  gl.attachShader(program, fShader);
 	  gl.linkProgram(program);
 	  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
 		    console.error('ERROR linking program!', gl.getProgramInfoLog(program));
@@ -71,10 +90,30 @@ function setupAttributePointer(gl,
                            elementsPerAttribute,
                            gl.FLOAT,
                            gl.FALSE,
-                           size * Float32Array.BYTES_PER_ELEMENT,
-                           offset * Float32Array.BYTES_PER_ELEMENT
+                           size?size * Float32Array.BYTES_PER_ELEMENT:0,
+                           offset?offset * Float32Array.BYTES_PER_ELEMENT:0
                           );
     return location;
+}
+
+function setupUniform(gl,
+                      program,
+                      name,
+                      type,
+                      data) {
+    const location = gl.getUniformLocation(program, name);
+    switch (type) {
+    case 'li':
+        gl.uniform1i(location, data);
+        break;
+    case '1f':
+        gl.uniform1f(location, data);
+        break;
+    case '2fv':
+        const packedData = Float32Array.from(data);
+        gl.uniform2fv(location, packedData);
+        break;
+    }
 }
 
 function setupTextureFromImage(gl, imageID) {
@@ -99,38 +138,39 @@ function loadMatrixUniform(gl, program, name, matrixData) {
     return location;
 }
 
-function makeEmptyTexture(gl) {
+function makeTexture(gl, size, data) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // gl.texImage2D(
-		//     gl.TEXTURE_2D, // Target
-    //     0, // Level
-    //     gl.RGBA, // Internal format
-    //     width, // Width
-    //     height, // Height
-    //     0, // Border
-    //     gl.RGBA, //Format
-		//     gl.UNSIGNED_BYTE, // Type
-		//     null // Data
-	  // );
+    gl.texImage2D(
+		    gl.TEXTURE_2D, // Target
+        0, // Level
+        gl.RGBA, // Internal format
+        size[0], // Width
+        size[1], // Height
+        0, // Border
+        gl.RGBA, //Format
+		    gl.UNSIGNED_BYTE, // Type
+		    data // Data
+	  );
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 }
 
-function randomizeTexture(gl, texture, size) {
+function makeRandomTexture(gl, size) {
     const area = size[0]*size[1];
-    const rgbaData = new Uint8Array(area*4);
+    const randomData = new Uint8Array(area*4);
     for (var i = 0; i < area; i++) {
         const ii = i*4;
-        rgbaData[ii + 0] = rgbaData[ii + 1] = rgbaData[ii + 2] = Math.random() < 0.5 ? 255 : 0;
-        rgbaData[ii + 3] = 255;
+        randomData[ii + 0] =  Math.random() < 0.5 ? 255 : 0;
+        randomData[ii + 1] =  Math.random() < 0.5 ? 255 : 0;
+        randomData[ii + 2] =  Math.random() < 0.5 ? 255 : 0;
+        randomData[ii + 3] =  Math.random() < 0.5 ? 255 : 0;
     }
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, size[0], size[1], gl.RGBA, gl.UNSIGNED_BYTE, rgbaData);
+    return makeTexture(gl, size, rgbaData);
 }
 
 function initFrameBuffer(gl, texture) {

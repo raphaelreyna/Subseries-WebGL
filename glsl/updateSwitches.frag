@@ -5,7 +5,6 @@ varying vec2 index;
 
 uniform sampler2D state;
 uniform sampler2D master;
-uniform vec2 statesize;
 uniform int reset;
 
 const float BASE = 256.0;
@@ -36,6 +35,6 @@ void main() {
     gl_FragColor = encode(value);
   }
   else {
-    gl_FragColor = texture2D(master, statesize);
+    gl_FragColor = texture2D(master, index);
   }
 }

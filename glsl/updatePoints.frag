@@ -6,28 +6,28 @@ varying vec2 index;
 uniform sampler2D points;
 uniform sampler2D switches;
 uniform vec2 statesize;
-uniform vec2 windowSize;
 uniform vec2 newTerm;
 uniform vec2 offset;
+uniform float windowsize;
 
 const float BASE = 256.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
 
 float decodeSwitch(vec4 data) {
-  float value = floor(data[0]*BASE);
-  value += floor(data[1]*BASE*BASE);
-  value += floor(data[2]*BASE*BASE*BASE);
-  value += floor(data[3]*BASE*BASE*BASE*BASE);
-  return value;
+  float value = data[0]*BASE;
+  value += data[1]*BASE*BASE;
+  value += data[2]*BASE*BASE*BASE;
+  value += data[3]*BASE*BASE*BASE*BASE;
+  return floor(value);
 }
 
 float getSwitchFromCode(float code) {
-  return mod(float(code), 2.0);
+  return mod(code, 2.0);
 }
 
 vec4 encodePoint(vec2 point) {
-  vec2 scale = vec2(BASE*BASE/windowSize.x,BASE*BASE/windowSize.y);
-  vec2 normalizedPoint = scale*point-offset;
+  vec2 scale = vec2(BASE*BASE/windowsize,BASE*BASE/windowsize);
+  vec2 normalizedPoint = scale*(point-offset);
   return vec4(mod(normalizedPoint.x, BASE),
               floor(normalizedPoint.x / BASE),
               mod(normalizedPoint.y, BASE),
@@ -37,9 +37,9 @@ vec4 encodePoint(vec2 point) {
 vec2 decodePoint(vec4 data) {
   vec2 reData = data.xy;
   vec2 imData = data.zw;
-  vec2 scale = vec2(BASE*BASE/windowSize.x,BASE*BASE/windowSize.y);
-  float re = (dot(DECODER, reData)/scale.x)+offset.x;
-  float im = (dot(DECODER, imData)/scale.y)+offset.y;
+  float scale = BASE*BASE/windowsize;
+  float re = (dot(DECODER, reData)/scale)+offset.x;
+  float im = (dot(DECODER, imData)/scale)+offset.y;
   return vec2(re, im);
 }
 
