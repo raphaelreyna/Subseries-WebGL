@@ -10,13 +10,18 @@ function now() {
 }
 
 function complexMult(a, b) {
-    var real = a.re*b.re-a.im*b.im;
-    var imag = a.re*b.im+a.im*b.re;
-    return {re: real,
-            im: imag};
+    const real = a.re*b.re-a.im*b.im;
+    const imag = a.re*b.im+a.im*b.re;
+    return {re: real, im: imag};
 }
 
 function scalarComplexMult(s, z) {
     return {re:s*z.re,
             im:s*z.im};
+}
+
+function complexAdd(a, b) {
+    const real = a.re + b.re;
+    const imag = a.im + b.im;
+    return {re:real, im: imag};
 }

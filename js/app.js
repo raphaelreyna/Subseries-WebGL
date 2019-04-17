@@ -95,7 +95,10 @@ class App {
                                           'glsl/updateSwitches.frag'),
             updatePoints: createProgram(gl,
                                         'glsl/update.vert',
-                                        'glsl/updatePoints.frag')};
+                                        'glsl/updatePoints.frag'),
+            resetPoints: createProgram(gl,
+                                       'glsl/update.vert',
+                                       'glsl/resetPoints.glsl')};
 
         // Initialize the buffers and send their data over to the GPU.
         this.buffers = {
@@ -211,7 +214,6 @@ class App {
         setupAttributePointer(gl, program, 'quad', 2, 0, 0);
         setupUniform(gl, program, 'points', 'li', 0);
         setupUniform(gl, program, 'switches', 'li', 1);
-        setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
         setupUniform(gl, program, 'windowsize', '1f', 3.6);
         setupUniform(gl, program, 'newTerm', '2fv', term);
         setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
@@ -263,5 +265,43 @@ class App {
 
         // Render to the screen.
         gl.drawArrays(gl.POINTS, 0, 2**this.k);
+    }
+
+    resetPoints(){
+        const gl = this.gl;
+        const program = this.programs.resetPoints;
+        const t = this.textures;
+
+        // Tell WebGL to use the resetSwitches program.
+        gl.useProgram(program);
+
+        // Bind the points framebuffer for offscreen rendering.
+        // Then, set it to render to into the points1 texture.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers.points);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                                gl.COLOR_ATTACHMENT0,
+                                gl.TEXTURE_2D,
+                                t.points1,
+                                0);
+
+        // Bind the buffer that contains the corners of the square we are drawing our texture onto.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.updateQuad);
+
+        // Render into a viewport with a size of stateSize.
+        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
+
+        // Send uniform and attribute data to the GPU.
+        setupAttributePointer(gl, program, 'quad', 2, 0, 0);
+        setupUniform(gl, program, 'windowsize', '1f', 3.6);
+        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
+
+        // Render updates to texture offscreen.
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Swap switches textures.
+        // New becomes old.
+        var tmp = t.points1;
+        t.points1 = t.points0;
+        t.points0 = tmp;
     }
 }

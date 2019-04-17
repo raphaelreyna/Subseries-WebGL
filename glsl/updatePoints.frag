@@ -5,7 +5,6 @@ varying vec2 index;
 
 uniform sampler2D points;
 uniform sampler2D switches;
-uniform vec2 statesize;
 uniform vec2 newTerm;
 uniform vec2 offset;
 uniform float windowsize;

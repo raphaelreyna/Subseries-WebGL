@@ -6,21 +6,15 @@
         <form id="form">
             Function:
             <input type="text" id="fxn" value="1/(1-x)">
-            <br>
             Real:
-            <input type="number" id="real" value=0.5>
-            <br>
+            <input type="number" step="any" id="real" value=0.5>
             Imaginary:
             <input type="number" id="imag" value=0.5>
-            <br>
             <button onclick="run()">Plot</button>
         </form>
-        <div id="msg"></div>
-        <br>
-		    <canvas  style="background-color: black" id="glCanvas" width="1024" height="1024">
+		    <canvas style="background-color: black" id="glCanvas" width="512" height="512">
 			      Your browser does not support HTML5
 		    </canvas>
-		    <br>
         <script type="text/javascript" src="https://unpkg.com/mathjs@5.9.0/dist/math.min.js" ></script>
 		    <script src="js/gl-matrix.js"></script>
 		    <script src="js/misc.js"></script>

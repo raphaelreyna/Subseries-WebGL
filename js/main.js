@@ -3,15 +3,15 @@ const canvas = document.getElementById('glCanvas');
 const k = 12;
 var app = new App(canvas, k);
 
-const zero = {x:0};
-var terms = [];
 var counter = 0;
 
-function run(){
-    const fString = document.getElementById("fxn").value;
-    const real = document.getElementById("real").value;
-    const imag = document.getElementById("imag").value;
-    const z0 = {re:real, im:imag};
+var terms = [];
+
+var ran = false;
+
+function getTerms(fString, z, d) {
+    const zero = {x:0};
+    var termsList = [];
 
     var c = 1;
     var factorial = 1;
@@ -27,20 +27,47 @@ function run(){
         factorial *= c;
         c++;
         f = math.derivative(f,'x');
-        zn = complexMult(z0, zn);
-        terms.push(term);
+        zn = complexMult(z, zn);
+        termsList.push(term);
     }
+    return termsList;
+}
+
+function stop(){
+    clearInterval(app.timer);
+    clearInterval(app.endTimer);
+    ran = true;
+}
+
+function run(){
+    if (ran) {
+        app.resetPoints();
+        app.shouldReset = 1;
+        app.updateSwitches();
+        app.counter = 0;
+        app.shouldReset = 0;
+        terms = [];
+        counter = 0;
+    }
+
+    const fString = document.getElementById("fxn").value;
+    var real = parseFloat(document.getElementById("real").value);
+    var imag = parseFloat(document.getElementById("imag").value);
+    terms = getTerms(fString, {re: real, im: imag});
+    var offset = {re:0, im:0};
+    for (var i = 0; i < 12; i++){
+        offset = complexAdd(offset, terms[i]);
+    }
+    offset = scalarComplexMult(0.5, offset);
+
     app.timer = setInterval(function(){
         const t = terms[counter];
         counter++;
         app.step([t.re,t.im]);
         app.draw();
-    }, 2);
-
-    app.endTimer = setInterval(function(){
-        if (counter === k+1) {
-            clearInterval(app.timer);
+        if (counter === k) {
+            stop();
         }
-    }, 1);
-    document.getElementById("msg").innerHTML = "You will need to refresh this page to run again.";
+        console.log(counter);
+    }, 2);
 }
