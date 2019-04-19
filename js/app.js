@@ -60,8 +60,36 @@ function createInitialData(stateSize, windowSize, offset) {
     return data;
 }
 
+function getTerms(fString, z, k) {
+    const zero = {x:0};
+    var termsList = [];
+
+    var counter = 1;
+    var factorial = 1;
+    var coeff = 0;
+    var zn = {re:1,im:0};
+    var term = 0;
+
+    var f = math.parse(fString);
+
+    for (var i = 0; i < k+2; i++) {
+        coeff = f.eval(zero)/factorial;
+        term = scalarComplexMult(coeff, zn);
+        factorial *= counter;
+        counter++;
+        f = math.derivative(f,'x');
+        zn = complexMult(z, zn);
+        termsList.push(term);
+    }
+    return termsList;
+}
+
 class App {
     constructor(canvas, k){
+        var terms = [];
+        var ran = false;
+        this.offset = null;
+        this.translation = null;
         // This is for a k-subautomatic subseries.
         this.k = k;
 
@@ -216,7 +244,7 @@ class App {
         setupUniform(gl, program, 'switches', 'li', 1);
         setupUniform(gl, program, 'windowsize', '1f', 3.6);
         setupUniform(gl, program, 'newTerm', '2fv', term);
-        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
+        setupUniform(gl, program, 'offset', '2fv', this.offset);
 
         // Render updates to texture offscreen.
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -228,12 +256,7 @@ class App {
         t.points0 = tmp;
     }
 
-    step(term) {
-        this.addTerm(term);
-        this.updateSwitches();
-    }
-
-    draw() {
+    draw(translation) {
         const gl = this.gl;
         const program = this.programs.draw;
         const t = this.textures;
@@ -260,11 +283,44 @@ class App {
         setupUniform(gl, program, 'points', '1i', 0);
         setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
         setupUniform(gl, program, 'windowsize', '1f', 3.36);
-        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
-        setupUniform(gl, program, 'translation', '2fv', [-0.5*0.8, -0.5*1.0]);
+        setupUniform(gl, program, 'offset', '2fv', this.offset);
+        setupUniform(gl, program, 'translation', '2fv', translation);
 
         // Render to the screen.
         gl.drawArrays(gl.POINTS, 0, 2**this.k);
+    }
+
+    setupForDrawLoop(fString, real, imag) {
+        if (this.ran) {
+            this.resetPoints();
+            this.shouldReset = 1;
+            this.updateSwitches();
+            this.counter = 0;
+            this.shouldReset = 0;
+            this.terms = [];
+            this.offset = null;
+            this.translation = null;
+        }else{
+            this.ran = true;
+        }
+
+        this.terms = getTerms(fString, {re: real, im: imag}, this.k);
+        var translation = {re:0, im:0};
+        var realMin = this.terms[0].re;
+        var imagMin = this.terms[0].im;
+        for (var i = 0; i < 12; i++){
+            const t = this.terms[i];
+            if (t.re < realMin) {
+                realMin = t.re;
+            }
+            if (t.im < imagMin) {
+                imagMin = t.im;
+            }
+            translation = complexAdd(translation, t);
+        }
+        translation = scalarComplexMult(-0.5, translation);
+        this.translation = [translation.re, translation.im];
+        this.offset = [realMin, imagMin];
     }
 
     resetPoints(){

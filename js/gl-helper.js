@@ -9,7 +9,7 @@ function initGL(canvas) {
 		    alert('Your browser does not support WebGL');
 	  }
 
-	  gl.clearColor(0.1, 0.1, 0.1, 1.0);
+	  gl.clearColor(0.156, 0.144, 0.144, 1.0);
 	  gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.DEPTH_TEST);
 

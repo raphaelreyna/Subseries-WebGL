@@ -1,3 +1,72 @@
 html {
-    background-color: #82a43a;
+    background-color: black;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+#navbar {
+    width: 100%;
+    height: 5%;
+    background-color: #282525;
+    clear: both;
+    float: left;
+    position: relative;
+    box-shadow: 0px 1px 10px 1px black;
+    z-index: 10;
+    color: white;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 250%;
+}
+
+#content {
+    width: 100%;
+    height: 95%;
+    background-color: red;
+    float: left;
+    clear: both;
+    position: relative;
+}
+
+#left {
+    float: left;
+    width: 25%;
+    height: 100%;
+    background-color: white;
+    position: relative;
+}
+
+#right {
+    float: right;
+    width: 75%;
+    height: 100%;
+    background-color: #282525;
+    position: relative;
+}
+
+#glCanvas {
+    position: absolute;
+    top:0;bottom:0;right:0;left:0;
+    margin:auto;
+    background-color: #282525;
+}
+
+#cPlaneWrapper {
+    width: 100%;
+    background-color: red;
+}
+
+#cPlane {
+    width: 100%;
+    background-color: purple;
+}
+
+#formWrapper {
+    padding-left: 10px;
+    width: 100%;
+    height: 50%;
+    padding-top: 10px;
+    background-color: blue;
 }
