@@ -60,34 +60,43 @@ function createInitialData(stateSize, windowSize, offset) {
     return data;
 }
 
-function getTerms(fString, z, k) {
+function getCoeffs(fString, k) {
     const zero = {x:0};
-    var termsList = [];
+    var coeffsList = [];
 
     var counter = 1;
     var factorial = 1;
     var coeff = 0;
-    var zn = {re:1,im:0};
-    var term = 0;
 
     var f = math.parse(fString);
 
     for (var i = 0; i < k+2; i++) {
         coeff = f.eval(zero)/factorial;
-        term = scalarComplexMult(coeff, zn);
         factorial *= counter;
         counter++;
         f = math.derivative(f,'x');
-        zn = complexMult(z, zn);
-        termsList.push(term);
+        coeffsList.push(coeff);
     }
-    return termsList;
+    return coeffsList;
+}
+
+function getPowers(real, imag, k) {
+    var z = {re:real, im: imag};
+    var z0 = {re: 1, im: 0};
+    var powers = [z0];
+    for (var i = 0; i < k; i++){
+        const p = complexMult(powers[i], z);
+        powers.push(p);
+    }
+    return powers;
 }
 
 class App {
     constructor(canvas, k){
-        var terms = [];
-        var ran = false;
+        this.coeffs = [];
+        this.fString = "";
+        this.powers = [];
+        this.terms = [];
         this.offset = null;
         this.translation = null;
         // This is for a k-subautomatic subseries.
@@ -291,20 +300,28 @@ class App {
     }
 
     setupForDrawLoop(fString, real, imag) {
-        if (this.ran) {
+        if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;
             this.updateSwitches();
             this.counter = 0;
             this.shouldReset = 0;
-            this.terms = [];
             this.offset = null;
             this.translation = null;
-        }else{
-            this.ran = true;
+        }
+        if (this.fString != fString) {
+            this.fString = fString;
+            this.coeffs = getCoeffs(this.fString, this.k);
+        }
+        this.powers = getPowers(real, imag, this.k);
+        this.terms = [];
+        for (var i = 0; i < this.k; i++){
+            const c = this.coeffs[i];
+            const zn = this.powers[i];
+            const term = scalarComplexMult(c, zn);
+            this.terms.push(term)
         }
 
-        this.terms = getTerms(fString, {re: real, im: imag}, this.k);
         var translation = {re:0, im:0};
         var realMin = this.terms[0].re;
         var imagMin = this.terms[0].im;
