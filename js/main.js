@@ -1,14 +1,16 @@
 const glCanvas = document.getElementById('glCanvas');
 const planeCanvas = document.getElementById('cPlane');
 const left = document.getElementById('left');
-const planeSize =  window.getComputedStyle(left).width;
+const planeSize = window.getComputedStyle(left).width;
 const nplaneSize = parseFloat(planeSize);
-const center = nplaneSize/2;
+const center = nplaneSize / 2;
 const ctx = planeCanvas.getContext('2d');
 var mouseX = transformPointInverse(0.5);
 var mouseY = transformPointInverse(-0.5);
 var r = 0.7071;
 var theta = 0.7853;
+var real = 0.5;
+var imag = 0.5;
 var tracking = false;
 const app = new App(glCanvas, 12);
 const imInput = document.getElementById('imag');
@@ -18,7 +20,52 @@ const thetaInput = document.getElementById('theta');
 const fxn = document.getElementById("fxn");
 const planeRect = planeCanvas.getBoundingClientRect();
 
-function gldrawloop(){
+
+function updateReal() {
+    real = parseFloat(reInput.value);
+    r = Math.sqrt(real*real+imag*imag);
+    rInput.value = r;
+    theta = Math.atan2(imag, real);
+    if (theta < 0) {
+        theta = theta+2*Math.PI;
+    }
+    thetaInput.value = theta;
+    mouseX = transformPointInverse(real);
+}
+
+function updateImag() {
+    imag = parseFloat(imInput.value);
+    r = Math.sqrt(real*real+imag*imag);
+    rInput.value = r;
+    theta = Math.atan2(imag, real);
+    if (theta < 0) {
+        theta = theta+2*Math.PI;
+    } 
+    thetaInput.value = theta;
+    mouseY = transformPointInverse(-imag);
+}
+
+function updateMagnitude(){
+    r = parseFloat(rInput.value);
+    real = r*Math.cos(theta);
+    reInput.value = real
+    imag = r*Math.sin(theta);
+    imInput.value = imag;
+    mouseX = transformPointInverse(real);
+    mouseY = transformPointInverse(-imag);
+}
+
+function updateTheta() {
+    theta = parseFloat(thetaInput.value);
+    real = r*Math.cos(theta);
+    reInput.value = real;
+    imag = r*Math.sin(theta);
+    imInput.value = imag;
+    mouseX = transformPointInverse(real);
+    mouseY = transformPointInverse(-imag);
+}
+
+function gldrawloop() {
     if (app.counter < app.k) {
         const t = app.terms[app.counter];
         app.addTerm([t.re, t.im]);
@@ -28,60 +75,54 @@ function gldrawloop(){
     }
 }
 
-function run(){
+function run() {
     const fString = fxn.value;
-    var real = parseFloat(reInput.value);
-    var imag = parseFloat(imInput.value);
     app.setupForDrawLoop(fString, real, imag);
     requestAnimationFrame(gldrawloop);
 }
 
-function setupPlaneCanvas(){
-    planeCanvas.style.width=planeSize;
-    planeCanvas.style.height=planeSize;
-    planeCanvas.width=nplaneSize;
-    planeCanvas.height=nplaneSize;
+function setupPlaneCanvas() {
+    planeCanvas.style.width = planeSize;
+    planeCanvas.style.height = planeSize;
+    planeCanvas.width = nplaneSize;
+    planeCanvas.height = nplaneSize;
 }
 
-function update(){
-    ctx.font      = "normal 12px Verdana";
+function update() {
+    ctx.font = "normal 12px Verdana";
     ctx.fillStyle = "#FF6A6A";
     ctx.clearRect(0, 0, nplaneSize, nplaneSize);
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = "#191919";
+    ctx.arc(center, center, 0.99 * center, 0, 2 * Math.PI, true);
+    ctx.fill();
+    ctx.closePath();
 
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = "#6a6a6a";
     ctx.beginPath();
     ctx.moveTo(center, 0);
     ctx.lineTo(center, nplaneSize);
-    ctx.strokeStyle = "#FF6A6A";
     ctx.stroke();
     ctx.closePath();
 
     ctx.beginPath();
     ctx.moveTo(0, center);
     ctx.lineTo(nplaneSize, center);
-    ctx.strokeStyle = "#FF6A6A";
     ctx.stroke();
     ctx.closePath();
-
+    ctx.restore();
+    //------
+    ctx.save();
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.arc(center, center, 0.99*center, 0, 2*Math.PI, true);
-    ctx.strokeStyle = "#FF6A6A";
-    ctx.stroke();
-    ctx.closePath();
-//------
-    ctx.beginPath();
-    ctx.moveTo(mouseX,center);
+    ctx.moveTo(mouseX, center);
     ctx.lineTo(mouseX, mouseY);
     ctx.strokeStyle = "#FF6A6A";
     ctx.stroke();
     ctx.closePath();
-
-    if (mouseX < center){
-        ctx.textAlign = "left";
-    }
-    else {
-        ctx.textAlign = "right";
-    }
-    ctx.fillText("Re(x)", mouseX, center);
 
     ctx.beginPath();
     ctx.moveTo(center, mouseY);
@@ -89,39 +130,44 @@ function update(){
     ctx.strokeStyle = "#FF6A6A";
     ctx.stroke();
     ctx.closePath();
+    ctx.restore();
 
-    if (mouseY < center){
-        ctx.textBaseline = "top";
+    if (mouseX < center) {
+        ctx.textAlign = "left";
+    } else {
+        ctx.textAlign = "right";
     }
-    else {
+    ctx.fillText("Re(x)", mouseX, center);
+    if (mouseY < center) {
+        ctx.textBaseline = "top";
+    } else {
         ctx.textBaseline = "ideographic";
     }
     ctx.fillText("Im(x)", center, mouseY);
 
     ctx.beginPath();
-    ctx.arc(center, center, 20, 0, (-1)*theta, true);
+    ctx.arc(center, center, 20, 0, (-1) * theta, true);
     ctx.strokeStyle = "#FF6A6A";
     ctx.stroke();
     ctx.closePath();
 
     ctx.save();
     ctx.translate(center, center);
-    ctx.rotate(-0.9*Math.sqrt(theta));
+    ctx.rotate(-0.9 * Math.sqrt(theta));
     ctx.translate(30, 0);
     ctx.fillText("θ", 0, 0);
     ctx.restore();
 
     ctx.save();
-    if (mouseY > center){
+    if (mouseY > center) {
         ctx.textBaseline = "top";
-    }
-    else {
+    } else {
         ctx.textBaseline = "ideographic";
     }
-    ctx.translate(center, center)
+    ctx.translate(center, center);
     ctx.rotate(-theta);
-    ctx.translate(0.47*r*center, 0);
-    if (mouseX < center){
+    ctx.translate(0.47 * r * center, 0);
+    if (mouseX < center) {
         ctx.rotate(Math.PI);
     }
     ctx.fillText("r", 0, 0);
@@ -144,22 +190,23 @@ function update(){
 }
 
 function getMousePos(evt) {
-    if (tracking){
+    if (tracking) {
         const x = evt.clientX - planeRect.left;
         const y = evt.clientY - planeRect.top;
         const tx = transformPoint(x);
         const ty = transformPoint(y);
-        r = Math.sqrt(tx**2+ty**2);
+        r = Math.sqrt(tx ** 2 + ty ** 2);
         theta = Math.atan2(ty, tx);
         if (theta < 0) {
-            theta = (-1)*theta;
+            theta = (-1) * theta;
+        } else if (theta > 0) {
+            theta = 2 * Math.PI - theta;
         }
-        else if (theta > 0){
-            theta = 2*Math.PI - theta;
-        }
-        if (r <= 1){
+        if (r <= 1) {
             mouseX = x;
             mouseY = y;
+            real = tx;
+            imag = -ty;
             reInput.value = tx;
             imInput.value = -ty;
             rInput.value = r;
@@ -175,11 +222,11 @@ function toggleTracking(evt) {
 }
 
 function transformPoint(x) {
-    return (2/nplaneSize)*x-1;
+    return (2 / nplaneSize) * x - 1;
 }
 
 function transformPointInverse(x) {
-    return (center)*(x+1);
+    return (center) * (x + 1);
 }
 
 planeCanvas.addEventListener("mousemove", getMousePos, false);

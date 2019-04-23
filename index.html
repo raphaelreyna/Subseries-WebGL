@@ -14,19 +14,19 @@
                         <input type="text" id="fxn" value="1/(1-x)">
                         <br>
                         Re(x) =
-                        <input type="number" step="any" id="real" value=0.5>
+                        <input type="number" onkeydown="updateReal()" step="any" id="real" value=0.5>
                         <br>
                         Im(x) =
-                        <input type="number" id="imag" value=0.5>
+                        <input type="number" onkeydown="updateImag()" id="imag" value=0.5>
                         <br>
                         r =
-                        <input type="number" id="r" value=0.7071>
+                        <input type="number" onkeydown="updateMagnitude()" id="r" value=0.7071>
                         <br>
                         θ =
-                        <input type="number" id="theta" value=0.7853905>
+                        <input type="number" onkeydown="updateTheta()" id="theta" value=0.7853905>
                         <br>
-                    <button onclick="run()">Plot</button>
-                </form>
+                        <button onclick="run()">Plot</button>
+                    </form>
                 </div>
                 <div id="cPlaneWrapper">
                     <canvas id="cPlane"></canvas>
@@ -37,7 +37,8 @@
                     Your browser does not support HTML5
                 </canvas>
             </div>
-        </div>
+        </div> 
+
     </body>
     <footer>
         <script type="text/javascript" src="https://unpkg.com/mathjs@5.9.0/dist/math.min.js" ></script>
