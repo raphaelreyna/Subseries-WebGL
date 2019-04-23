@@ -1,29 +1,3 @@
-const BASE = 256;
-
-// Encode the switch integer as a 4 digit base 256 number.
-// This encoding allows us to store the integers as a rgba texture.
-function encodeSwitch(value) {
-    var digits = [];
-    var quotient = value;
-    for (var i = 0; i < 4; i++) {
-        digits[i] = quotient % BASE;
-        quotient = Math.floor(quotient / BASE);
-    }
-    return digits;
-}
-
-// Encode a complex number as a 4 digit base 256 number.
-// This encoding allows us to store the numbers as a rgba texture.
-function encodePoint(re, im, scale, offset) {
-    const normalizedRe = scale*(re - offset[0]);
-    const normalizedIm = scale*(im - offset[1]);
-    const encodedPoint = [normalizedRe % BASE,
-                          Math.floor(normalizedRe / BASE),
-                          normalizedIm % BASE,
-                          Math.floor(normalizedIm / BASE)];
-    return encodedPoint;
-}
-
 // Initialize indexes as [x0,y0,x1,y1,x2,y2,...].
 // Initialize all points as 0+0i, encoded.
 // Initialize switches as [a0,b0,c0,d0,a1,b1,c1,d2,...],
@@ -35,7 +9,7 @@ function createInitialData(stateSize, windowSize, offset) {
         switches: new Uint8Array(size),
         points: new Uint8Array(size),
     };
-    const encodedZero = encodePoint(0.0, 0.0, 256*256/windowSize, offset);
+    const encodedZero = encodePoint(0.0, 0.0, BASE*BASE/windowSize, offset);
     var switchCode = 0;
     for (var y = 0; y < stateSize[1]; y++) {
         for (var x = 0; x < stateSize[0]; x++) {
@@ -60,37 +34,6 @@ function createInitialData(stateSize, windowSize, offset) {
     return data;
 }
 
-function getCoeffs(fString, k) {
-    const zero = {x:0};
-    var coeffsList = [];
-
-    var counter = 1;
-    var factorial = 1;
-    var coeff = 0;
-
-    var f = math.parse(fString);
-
-    for (var i = 0; i < k+2; i++) {
-        coeff = f.eval(zero)/factorial;
-        factorial *= counter;
-        counter++;
-        f = math.derivative(f,'x');
-        coeffsList.push(coeff);
-    }
-    return coeffsList;
-}
-
-function getPowers(real, imag, k) {
-    var z = {re:real, im: imag};
-    var z0 = {re: 1, im: 0};
-    var powers = [z0];
-    for (var i = 0; i < k; i++){
-        const p = complexMult(powers[i], z);
-        powers.push(p);
-    }
-    return powers;
-}
-
 class App {
     constructor(canvas, k){
         this.coeffs = [];
@@ -99,6 +42,7 @@ class App {
         this.terms = [];
         this.offset = null;
         this.translation = null;
+        this.width = 0;
         // This is for a k-subautomatic subseries.
         this.k = k;
 
@@ -120,7 +64,7 @@ class App {
         checkIfOK(gl);
 
         // Initialize the data to send to the GPU.
-        const initData = createInitialData(this.stateSize, 2.3, [-0.640625,-0.3125]);
+        const initData = createInitialData(this.stateSize, 3.6, [-0.640625,-0.3125]);
 
         // Create the programs from their shaders' paths.
         this.programs = {
@@ -251,7 +195,7 @@ class App {
         setupAttributePointer(gl, program, 'quad', 2, 0, 0);
         setupUniform(gl, program, 'points', 'li', 0);
         setupUniform(gl, program, 'switches', 'li', 1);
-        setupUniform(gl, program, 'windowsize', '1f', 3.6);
+        setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'newTerm', '2fv', term);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
 
@@ -291,7 +235,7 @@ class App {
         setupAttributePointer(gl, program, 'index', 2, 0, 0);
         setupUniform(gl, program, 'points', '1i', 0);
         setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
-        setupUniform(gl, program, 'windowsize', '1f', 3.36);
+        setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
         setupUniform(gl, program, 'translation', '2fv', translation);
 
@@ -300,15 +244,6 @@ class App {
     }
 
     setupForDrawLoop(fString, real, imag) {
-        if (this.fString != "") {
-            this.resetPoints();
-            this.shouldReset = 1;
-            this.updateSwitches();
-            this.counter = 0;
-            this.shouldReset = 0;
-            this.offset = null;
-            this.translation = null;
-        }
         if (this.fString != fString) {
             this.fString = fString;
             this.coeffs = getCoeffs(this.fString, this.k);
@@ -325,6 +260,8 @@ class App {
         var translation = {re:0, im:0};
         var realMin = this.terms[0].re;
         var imagMin = this.terms[0].im;
+        var realMax = this.terms[0].re;
+        var imagMax = this.terms[0].im;
         for (var i = 0; i < 12; i++){
             const t = this.terms[i];
             if (t.re < realMin) {
@@ -333,11 +270,47 @@ class App {
             if (t.im < imagMin) {
                 imagMin = t.im;
             }
+            if (t.re > realMax) {
+                realMax = t.re;
+            }
+            if (t.im > imagMax) {
+                imagMax = t.im;
+            }
             translation = complexAdd(translation, t);
         }
         translation = scalarComplexMult(-0.5, translation);
         this.translation = [translation.re, translation.im];
         this.offset = [realMin, imagMin];
+        var k = 0;
+        var temp = Math.sqrt(real**2+imag**2);
+        if (k < temp) {
+            k = temp;
+        }
+        temp = Math.sqrt((this.coeffs[0]-real)**2+imag**2);
+        if (k < temp) {
+            k = temp;
+        }
+        temp = Math.sqrt(((this.coeffs[1]-1)**2)*(real**2+imag**2));
+        if (k < temp) {
+            k = temp;
+        }
+        temp = Math.sqrt((this.coeffs[0]+(this.coeffs[1]-1)*real)**2+((this.coeffs[1]-1)*imag)**2);
+        if (k < temp) {
+            k = temp;
+        }
+
+        var seriesForComputingWidth = 0;
+        for (var i = 2; i < 12; i++){
+            seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
+        }
+        this.width = k+seriesForComputingWidth;
+        if (this.fString != "") {
+            this.resetPoints();
+            this.shouldReset = 1;
+            this.updateSwitches();
+            this.counter = 0;
+            this.shouldReset = 0;
+        }
     }
 
     resetPoints(){
@@ -345,7 +318,7 @@ class App {
         const program = this.programs.resetPoints;
         const t = this.textures;
 
-        // Tell WebGL to use the resetSwitches program.
+        // Tell WebGL to use the resetPoints program.
         gl.useProgram(program);
 
         // Bind the points framebuffer for offscreen rendering.
@@ -365,8 +338,8 @@ class App {
 
         // Send uniform and attribute data to the GPU.
         setupAttributePointer(gl, program, 'quad', 2, 0, 0);
-        setupUniform(gl, program, 'windowsize', '1f', 3.6);
-        setupUniform(gl, program, 'offset', '2fv', [-0.640625,-0.3125]);
+        setupUniform(gl, program, 'windowsize', '1f', this.width);
+        setupUniform(gl, program, 'offset', '2fv', this.offset);
 
         // Render updates to texture offscreen.
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

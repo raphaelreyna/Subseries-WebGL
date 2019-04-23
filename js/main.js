@@ -92,7 +92,6 @@ function update() {
     ctx.font = "normal 12px Verdana";
     ctx.fillStyle = "#FF6A6A";
     ctx.clearRect(0, 0, nplaneSize, nplaneSize);
-    
     ctx.save();
     ctx.beginPath();
     ctx.fillStyle = "#191919";
