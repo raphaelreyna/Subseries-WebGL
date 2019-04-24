@@ -24,6 +24,6 @@ vec2 decodePoint(vec4 data) {
 void main() {
   vec4 pointData = texture2D(points, index / statesize);
   vec2 point = decodePoint(pointData);
-  gl_Position = vec4((2.0*point/(1.1*windowsize)+translation), 0, 1);
+  gl_Position = vec4(2.0*(point+translation)/windowsize, 0, 1);
   gl_PointSize = POINT_SIZE;
 }

@@ -70,8 +70,9 @@ function gldrawloop() {
         const t = app.terms[app.counter];
         app.addTerm([t.re, t.im]);
         app.updateSwitches();
-        app.draw(app.translation);
         requestAnimationFrame(gldrawloop);
+    } else {
+        app.draw(app.translation);
     }
 }
 

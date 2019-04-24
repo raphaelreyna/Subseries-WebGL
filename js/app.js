@@ -64,7 +64,7 @@ class App {
         checkIfOK(gl);
 
         // Initialize the data to send to the GPU.
-        const initData = createInitialData(this.stateSize, 3.6, [-0.640625,-0.3125]);
+        const initData = createInitialData(this.stateSize, 2.3, [-0.640625,-0.3125]);
 
         // Create the programs from their shaders' paths.
         this.programs = {
@@ -259,29 +259,21 @@ class App {
         }
 
         var translation = {re:0, im:0};
-        var realMin = this.terms[0].re;
-        var imagMin = this.terms[0].im;
-        var realMax = this.terms[0].re;
-        var imagMax = this.terms[0].im;
+        var offsetX = 0;
+        var offsetY = 0;
         for (var i = 0; i < 12; i++){
             const t = this.terms[i];
-            if (t.re < realMin) {
-                realMin = t.re;
+            if (t.re < 0) {
+                offsetX += t.re;
             }
-            if (t.im < imagMin) {
-                imagMin = t.im;
-            }
-            if (t.re > realMax) {
-                realMax = t.re;
-            }
-            if (t.im > imagMax) {
-                imagMax = t.im;
+            if (t.im < 0) {
+                offsetY += t.im;
             }
             translation = complexAdd(translation, t);
         }
         translation = scalarComplexMult(-0.5, translation);
         this.translation = [translation.re, translation.im];
-        this.offset = [realMin, imagMin];
+        this.offset = [offsetX, offsetY];
         var k = 0;
         var temp = Math.sqrt(real**2+imag**2);
         if (k < temp) {
