@@ -8,7 +8,7 @@ uniform vec2 offset;
 uniform vec2 translation;
 uniform float windowsize;
 
-const float POINT_SIZE = 3.0;
+const float POINT_SIZE = 1.0;
 const float BASE = 255.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
 

@@ -241,7 +241,7 @@ class App {
 
         // Render to the screen.
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.POINTS, 0, 4096);
+        gl.drawArrays(gl.POINTS, 0, 2**this.k-2);
     }
 
     setupForDrawLoop(fString, real, imag) {
@@ -261,7 +261,7 @@ class App {
         var translation = {re:0, im:0};
         var offsetX = 0;
         var offsetY = 0;
-        for (var i = 0; i < 12; i++){
+        for (var i = 0; i < this.k; i++){
             const t = this.terms[i];
             if (t.re < 0) {
                 offsetX += t.re;
@@ -293,10 +293,11 @@ class App {
         }
 
         var seriesForComputingWidth = 0;
-        for (var i = 2; i < 12; i++){
+        for (var i = 2; i < this.k; i++){
             seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
         }
         this.width = k+seriesForComputingWidth;
+        this.width *= 1.5;
         if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;
