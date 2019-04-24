@@ -16,7 +16,6 @@ float decodeSwitch(vec4 data) {
   float value = data[0]*BASE;
   value += data[1]*BASE*BASE;
   value += data[2]*BASE*BASE*BASE;
-  value += data[3]*BASE*BASE*BASE*BASE;
   return floor(value);
 }
 

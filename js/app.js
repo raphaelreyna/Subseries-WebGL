@@ -23,7 +23,7 @@ function createInitialData(stateSize, windowSize, offset) {
             data.switches[i] = digits[0];
             data.switches[i+1] = digits[1];
             data.switches[i+2] = digits[2];
-            data.switches[i+3] = digits[3];
+            data.switches[i+3] = 0;
 
             data.points[i] = encodedZero[0];
             data.points[i+1] = encodedZero[1];
@@ -228,12 +228,17 @@ class App {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, t.points0);
 
+        // Bind texture containing switches/counter data.
+        gl.activeTexture(gl.TEXTURE0+1);
+        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
+
         // Render into a viewport the size of the canvas.
         gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
 
         // Send uniform and attribute data to the GPU.
         setupAttributePointer(gl, program, 'index', 2, 0, 0);
         setupUniform(gl, program, 'points', '1i', 0);
+        setupUniform(gl, program,'switches', 'li', 1);
         setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
         setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
@@ -241,7 +246,10 @@ class App {
 
         // Render to the screen.
         gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.POINTS, 0, 2**this.k-2);
+        gl.disable(gl.BLEND);
     }
 
     setupForDrawLoop(fString, real, imag) {
@@ -297,7 +305,7 @@ class App {
             seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
         }
         this.width = k+seriesForComputingWidth;
-        this.width *= 1.5;
+        this.width *= 1.2;
         if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;
