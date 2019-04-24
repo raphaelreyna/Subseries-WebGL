@@ -9,7 +9,7 @@ uniform vec2 translation;
 uniform float windowsize;
 
 const float POINT_SIZE = 3.0;
-const float BASE = 256.0;
+const float BASE = 255.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
 
 vec2 decodePoint(vec4 data) {

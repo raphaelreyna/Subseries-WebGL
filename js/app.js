@@ -240,7 +240,8 @@ class App {
         setupUniform(gl, program, 'translation', '2fv', translation);
 
         // Render to the screen.
-        gl.drawArrays(gl.POINTS, 0, 2**this.k);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, 4096);
     }
 
     setupForDrawLoop(fString, real, imag) {

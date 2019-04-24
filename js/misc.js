@@ -1,4 +1,4 @@
-const BASE = 256;
+const BASE = 255;
 
 function fetch(url, callback) {
     const xhr = new XMLHttpRequest();

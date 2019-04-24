@@ -9,7 +9,7 @@ uniform vec2 newTerm;
 uniform vec2 offset;
 uniform float windowsize;
 
-const float BASE = 256.0;
+const float BASE = 255.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
 
 float decodeSwitch(vec4 data) {

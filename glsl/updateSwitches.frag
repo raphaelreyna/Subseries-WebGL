@@ -7,7 +7,7 @@ uniform sampler2D state;
 uniform sampler2D master;
 uniform int reset;
 
-const float BASE = 256.0;
+const float BASE = 255.0;
 
 vec4 encode(float value) {
   vec4 encoded;
