@@ -1,5 +1,5 @@
-function initGL(canvas) {
-    const gl = canvas.getContext('webgl');
+function initGL(canvas, clearColor) {
+    var gl = canvas.getContext('webgl');
     if (!gl) {
 		    console.log('WebGL not supported, falling back on experimental-webgl');
 		    gl = canvas.getContext('experimental-webgl');
@@ -9,7 +9,10 @@ function initGL(canvas) {
 		    alert('Your browser does not support WebGL');
 	  }
 
-	  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	  gl.clearColor(clearColor[0],
+                  clearColor[1],
+                  clearColor[2],
+                  clearColor[3]);
 	  gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.DEPTH_TEST);
 
@@ -160,17 +163,9 @@ function makeTexture(gl, size, data) {
     return texture;
 }
 
-function makeRandomTexture(gl, size) {
-    const area = size[0]*size[1];
-    const randomData = new Uint8Array(area*4);
-    for (var i = 0; i < area; i++) {
-        const ii = i*4;
-        randomData[ii + 0] =  Math.random() < 0.5 ? 255 : 0;
-        randomData[ii + 1] =  Math.random() < 0.5 ? 255 : 0;
-        randomData[ii + 2] =  Math.random() < 0.5 ? 255 : 0;
-        randomData[ii + 3] =  Math.random() < 0.5 ? 255 : 0;
-    }
-    return makeTexture(gl, size, rgbaData);
+function bindTexture(gl, location, texture) {
+    gl.activeTexture(gl.TEXTURE0 + location);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
 }
 
 function initFrameBuffer(gl, texture) {
@@ -185,7 +180,28 @@ function initFrameBuffer(gl, texture) {
     return framebuffer;
 }
 
+function useFramebufferWithTex(gl, framebuffer, texture) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                            gl.COLOR_ATTACHMENT0,
+                            gl.TEXTURE_2D,
+                            texture,
+                            0);
+}
+
+function useDefaultFramebuffer(gl) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
 function squareBuffer(gl) {
     const data = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
     return initArrayBuffer(gl, data);
+}
+
+function drawPointsWithBlending(gl, count) {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.drawArrays(gl.POINTS, 0, count-2);
+    gl.disable(gl.BLEND);
 }

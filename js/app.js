@@ -59,7 +59,7 @@ class App {
         this.counter = 0;
 
         // Grab the WebGL context and check if it does what we need.
-        this.gl = initGL(canvas);
+        this.gl = initGL(canvas, [0,0,0,1]);
         const gl = this.gl;
         checkIfOK(gl);
 
@@ -118,24 +118,17 @@ class App {
 
         // Bind the switches framebuffer for offscreen rendering.
         // Then, set it to render to into the switches1 texture.
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers.switches);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER,
-                                gl.COLOR_ATTACHMENT0,
-                                gl.TEXTURE_2D,
-                                t.switches1,
-                                0);
+        useFramebufferWithTex(gl, this.frameBuffers.switches, t.switches1);
+
+        // Render into a viewport with a size of stateSize.
+        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
 
         // Bind the buffer that contains the corners of the square we are drawing our texture onto.
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.updateQuad);
 
         // Bind switches0 and masterSwitches textures.
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
-        gl.activeTexture(gl.TEXTURE0+1);
-        gl.bindTexture(gl.TEXTURE_2D, t.switchesMaster);
-
-        // Render into a viewport with a size of stateSize.
-        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
+        bindTexture(gl, 0, t.switches0);
+        bindTexture(gl, 1, t.switchesMaster);
 
         // Send attribute and uniform data to GPU.
         setupAttributePointer(gl, program, 'quad', 2);
@@ -146,21 +139,12 @@ class App {
         // Render updates to texture offscreen.
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        // Swap switches textures.
-        // New becomes old.
-        var tmp = t.switches1;
-        t.switches1 = t.switches0;
-        t.switches0 = tmp;
+        // Swap textures so we read from the newly updated texture next time.
+        this.swapSwitchesTextures();
 
-        // Setup reset for next time.
-        if (this.shouldReset === 1) {
-            this.shouldReset = 0;
-        }
-        this.counter++;
-        if (this.counter % 2**this.k === 0) {
-            this.shouldReset = 1
-        }
-    }
+        // Update the counter that controls when the switches are reset.
+        this.updateResetCounter();
+}
 
     addTerm(term) {
         const gl = this.gl;
@@ -172,24 +156,17 @@ class App {
 
         // Bind the points framebuffer for offscreen rendering.
         // Then, set it to render to into the points1 texture.
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers.points);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER,
-                                gl.COLOR_ATTACHMENT0,
-                                gl.TEXTURE_2D,
-                                t.points1,
-                                0);
+        useFramebufferWithTex(gl, this.frameBuffers.points, t.points1);
+
+        // Render into a viewport with a size of stateSize.
+        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
 
         // Bind the buffer that contains the corners of the square we are drawing our texture onto.
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.updateQuad);
 
         // Bind textures for points and switches.
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, t.points0);
-        gl.activeTexture(gl.TEXTURE0+1);
-        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
-
-        // Render into a viewport with a size of stateSize.
-        gl.viewport(0, 0, this.stateSize[0], this.stateSize[1]);
+        bindTexture(gl, 0, t.points0);
+        bindTexture(gl, 1, t.switches0);
 
         // Send uniform and attribute data to the GPU.
         setupAttributePointer(gl, program, 'quad', 2, 0, 0);
@@ -204,9 +181,7 @@ class App {
 
         // Swap switches textures.
         // New becomes old.
-        var tmp = t.points1;
-        t.points1 = t.points0;
-        t.points0 = tmp;
+        this.swapPointsTextures();
     }
 
     draw(translation) {
@@ -220,20 +195,18 @@ class App {
         // Bind the default framebuffer for rendering to the display.
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+        // Render into a viewport the size of the canvas.
+        gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
+
         // Bind the buffer that contains the indexes for the points.
         // One index pair per point/subseries.
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.indexes);
 
         // Bind texture containing point data.
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, t.points0);
+        bindTexture(gl, 0, t.points0);
 
         // Bind texture containing switches/counter data.
-        gl.activeTexture(gl.TEXTURE0+1);
-        gl.bindTexture(gl.TEXTURE_2D, t.switches0);
-
-        // Render into a viewport the size of the canvas.
-        gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
+        bindTexture(gl, 1, t.switches0);
 
         // Send uniform and attribute data to the GPU.
         setupAttributePointer(gl, program, 'index', 2, 0, 0);
@@ -245,11 +218,7 @@ class App {
         setupUniform(gl, program, 'translation', '2fv', translation);
 
         // Render to the screen.
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.drawArrays(gl.POINTS, 0, 2**this.k-2);
-        gl.disable(gl.BLEND);
+        drawPointsWithBlending(gl, 2**this.k);
     }
 
     setupForDrawLoop(fString, real, imag) {
@@ -346,10 +315,30 @@ class App {
         // Render updates to texture offscreen.
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        // Swap switches textures.
-        // New becomes old.
-        var tmp = t.points1;
-        t.points1 = t.points0;
-        t.points0 = tmp;
+        this.swapPointsTextures();
+    }
+
+    swapSwitchesTextures() {
+        const temp = this.textures.switches0;
+        this.textures.switches0 = this.textures.switches1;
+        this.textures.switches1 = temp;
+    }
+
+    swapPointsTextures() {
+        const temp = this.textures.points0;
+        this.textures.points0 = this.textures.points1;
+        this.textures.points1 = temp;
+    }
+
+    updateResetCounter() {
+        // Setup reset for next time.
+        if (this.shouldReset === 1) {
+            this.shouldReset = 0;
+        }
+        this.counter++;
+        if (this.counter % 2**this.k === 0) {
+            this.shouldReset = 1
+        }
+
     }
 }
