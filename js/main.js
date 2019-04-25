@@ -1,4 +1,9 @@
+const winHeight = window.innerHeight;
+const winWidth = window.innerWidth;
+const winDiameter = Math.max(winHeight, winWidth);
 const glCanvas = document.getElementById('glCanvas');
+glCanvas.height = 0.75*winDiameter;
+glCanvas.width = 0.75*winDiameter;
 const planeCanvas = document.getElementById('cPlane');
 const left = document.getElementById('left');
 const planeSize = window.getComputedStyle(left).width;
@@ -207,10 +212,10 @@ function getMousePos(evt) {
             mouseY = y;
             real = tx;
             imag = -ty;
-            reInput.value = tx;
-            imInput.value = -ty;
-            rInput.value = r;
-            thetaInput.value = theta;
+            reInput.value = tx.toFixed(5);
+            imInput.value = -ty.toFixed(5);
+            rInput.value = r.toFixed(5);
+            thetaInput.value = theta.toFixed(5);
             run();
         }
     }

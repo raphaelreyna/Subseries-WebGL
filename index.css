@@ -83,6 +83,11 @@ input {
     font-size: 1em;
     background: none;
     font-family: 'Roboto';
+    width: 23%;
+}
+
+.inner {
+    margin-right: 20px;
 }
 
 input::-webkit-outer-spin-button,
