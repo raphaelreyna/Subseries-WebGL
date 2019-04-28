@@ -252,29 +252,20 @@ class App {
         this.translation = [translation.re, translation.im];
         this.offset = [offsetX, offsetY];
         var k = 0;
-        var temp = Math.sqrt(real**2+imag**2);
-        if (k < temp) {
-            k = temp;
+        var wn = {re: 1, im: 0}
+        const w = {re: real, im: imag};
+        var cSeriesForComputingWidth = {re: 0, im: 0};
+        for (var i = 0; i < this.k; i++){
+            const term = scalarComplexMult(this.coeffs[i], wn);
+            cSeriesForComputingWidth = complexAdd(term, cSeriesForComputingWidth);
+            wn = complexMult(w, wn);
         }
-        temp = Math.sqrt((this.coeffs[0]-real)**2+imag**2);
-        if (k < temp) {
-            k = temp;
-        }
-        temp = Math.sqrt(((this.coeffs[1]-1)**2)*(real**2+imag**2));
-        if (k < temp) {
-            k = temp;
-        }
-        temp = Math.sqrt((this.coeffs[0]+(this.coeffs[1]-1)*real)**2+((this.coeffs[1]-1)*imag)**2);
-        if (k < temp) {
-            k = temp;
-        }
-
+        const midpoint = 0.5*abs(cSeriesForComputingWidth);
         var seriesForComputingWidth = 0;
-        for (var i = 2; i < this.k; i++){
+        for (var i = 0; i < this.k; i++){
             seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
         }
-        this.width = k+seriesForComputingWidth;
-        this.width *= 1.2;
+        this.width = midpoint+seriesForComputingWidth;
         if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;

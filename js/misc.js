@@ -24,6 +24,10 @@ function complexAdd(a, b) {
     return {re:real, im: imag};
 }
 
+function abs(a) {
+    return Math.sqrt(a.re**2+a.im**2);
+}
+
 // Encode the switch integer as a 4 digit base 256 number.
 // This encoding allows us to store the integers as a rgba texture.
 function encodeSwitch(value) {
