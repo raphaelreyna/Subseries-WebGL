@@ -17,13 +17,14 @@ var theta = 0.7853;
 var real = 0.5;
 var imag = 0.5;
 var tracking = false;
-const app = new App(glCanvas, 15);
+const app = new App(glCanvas, 16);
 const imInput = document.getElementById('imag');
 const reInput = document.getElementById('real');
 const rInput = document.getElementById('r');
 const thetaInput = document.getElementById('theta');
 const fxn = document.getElementById("fxn");
 const planeRect = planeCanvas.getBoundingClientRect();
+var rotating = false;
 
 
 function updateReal() {
@@ -81,10 +82,34 @@ function gldrawloop() {
     }
 }
 
+function rotationLoop() {
+    const currentTheta = parseFloat(thetaInput.value);
+    thetaInput.value = currentTheta+0.001;
+    updateTheta();
+    const fString = fxn.value;
+    app.setupForDrawLoop(fString, real, imag);
+    for (var i = 0; i < app.k; i++) {
+        const t = app.terms[app.counter];
+        app.addTerm([t.re, t.im]);
+        app.updateSwitches();
+    }
+    app.draw(app.translation);
+    if (rotating){
+        window.requestAnimationFrame(rotationLoop);
+    }
+}
+
 function run() {
     const fString = fxn.value;
     app.setupForDrawLoop(fString, real, imag);
     requestAnimationFrame(gldrawloop);
+}
+
+function toggleRotation() {
+    rotating = !rotating;
+    if (rotating) {
+        rotationLoop();
+    }
 }
 
 function setupPlaneCanvas() {
@@ -239,3 +264,4 @@ planeCanvas.addEventListener("click", toggleTracking);
 setupPlaneCanvas();
 update();
 run();
+toggleRotation();
