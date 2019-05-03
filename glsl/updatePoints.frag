@@ -8,6 +8,7 @@ uniform sampler2D switches;
 uniform vec2 newTerm;
 uniform vec2 offset;
 uniform float windowsize;
+uniform int lw;
 
 const float BASE = 255.0;
 const vec2 DECODER = vec2(BASE, BASE*BASE);
@@ -47,6 +48,10 @@ void main() {
   vec2 p = decodePoint(pointData);
   float s = decodeSwitch(switchData);
   float sw = getSwitchFromCode(s);
-  p += (2.0*(sw-1.0)+1.0)*newTerm;
+  if (lw == 0) {
+    p += sw*newTerm;
+  } else {
+    p += (2.0*(sw-1.0)+1.0)*newTerm;
+  }
   gl_FragColor = encodePoint(p);
 }

@@ -25,7 +25,8 @@ const thetaInput = document.getElementById('theta');
 const fxn = document.getElementById("fxn");
 const planeRect = planeCanvas.getBoundingClientRect();
 var rotating = false;
-
+var lw = false;
+const lwButton = document.getElementById("lwButton");
 
 function updateReal() {
     real = parseFloat(reInput.value);
@@ -54,7 +55,7 @@ function updateImag() {
 function updateMagnitude(){
     r = parseFloat(rInput.value);
     real = r*Math.cos(theta);
-    reInput.value = real
+    reInput.value = real;
     imag = r*Math.sin(theta);
     imInput.value = imag;
     mouseX = transformPointInverse(real);
@@ -78,7 +79,7 @@ function gldrawloop() {
         app.updateSwitches();
         requestAnimationFrame(gldrawloop);
     } else {
-        app.draw(app.translation);
+        app.draw();
     }
 }
 
@@ -93,7 +94,7 @@ function rotationLoop() {
         app.addTerm([t.re, t.im]);
         app.updateSwitches();
     }
-    app.draw(app.translation);
+    app.draw();
     if (rotating){
         window.requestAnimationFrame(rotationLoop);
     }
@@ -109,6 +110,19 @@ function toggleRotation() {
     rotating = !rotating;
     if (rotating) {
         rotationLoop();
+    }
+}
+
+function toggleLW() {
+    if (app.lw === 0) {
+        app.lw = 1;
+        lwButton.innerHTML = "Switch to subseries"
+    } else {
+        app.lw = 0;
+        lwButton.innerHTML = "Switch to Littlewood (experimental)";
+    }
+    if (!rotating){
+        run();
     }
 }
 
@@ -264,4 +278,3 @@ planeCanvas.addEventListener("click", toggleTracking);
 setupPlaneCanvas();
 update();
 run();
-toggleRotation();

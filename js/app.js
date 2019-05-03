@@ -43,6 +43,7 @@ class App {
         this.offset = null;
         this.translation = null;
         this.width = 0;
+        this.lw = 0; // 0 for false, 1 for true
         // This is for a k-subautomatic subseries.
         this.k = k;
 
@@ -64,7 +65,7 @@ class App {
         checkIfOK(gl);
 
         // Initialize the data to send to the GPU.
-        const initData = createInitialData(this.stateSize, 2/(1-0.7071), [-1/(1-0.7071),-1/(1-0.7071)]);
+        const initData = createInitialData(this.stateSize, 2.3, [-0.640625,-0.3125]);
 
         // Create the programs from their shaders' paths.
         this.programs = {
@@ -175,6 +176,7 @@ class App {
         setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'newTerm', '2fv', term);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
+        setupUniform(gl, program, 'lw', 'li', this.lw);
 
         // Render updates to texture offscreen.
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -184,7 +186,7 @@ class App {
         this.swapPointsTextures();
     }
 
-    draw(translation) {
+    draw() {
         const gl = this.gl;
         const program = this.programs.draw;
         const t = this.textures;
@@ -215,58 +217,78 @@ class App {
         setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
         setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
-        setupUniform(gl, program, 'translation', '2fv', [0,0]);
+        setupUniform(gl, program, 'translation', '2fv', this.translation);
 
         // Render to the screen.
         drawPointsWithBlending(gl, 2**this.k);
     }
 
     setupForDrawLoop(fString, real, imag) {
+        // Check if function has changed.
+        // If so, we need to recompute the coefficients
         if (this.fString != fString) {
             this.fString = fString;
             this.coeffs = getCoeffs(this.fString, this.k);
         }
+        // Compute the sequence of powers for the given complex number.
         this.powers = getPowers(real, imag, this.k);
+        // Compute the terms of the function evaluation at the given complex number.
         this.terms = [];
         for (var i = 0; i < this.k; i++){
             const c = this.coeffs[i];
             const zn = this.powers[i];
             const term = scalarComplexMult(c, zn);
-            this.terms.push(term)
+            this.terms.push(term);
         }
 
-        var translation = {re:0, im:0};
-        var offsetX = 0;
-        var offsetY = 0;
-        for (var i = 0; i < this.k; i++){
-            const t = this.terms[i];
-            if (t.re < 0) {
-                offsetX += t.re;
+        // Check if we are computing a subseries or Littlewood series.
+        // Otherwise we set the translation for drawing to the origin.
+        if (this.lw === 0) {
+            // If we are computing a subseries, calculate the translation for drawing and offset for encoding.
+            var translation = {re:0, im:0};
+            var offsetX = 0;
+            var offsetY = 0;
+            for (var i = 0; i < this.k; i++){
+                const t = this.terms[i];
+                if (t.re < 0) {
+                    offsetX += t.re;
+                }
+                if (t.im < 0) {
+                    offsetY += t.im;
+                }
+                translation = complexAdd(translation, t);
             }
-            if (t.im < 0) {
-                offsetY += t.im;
+            translation = scalarComplexMult(-0.5, translation);
+            this.translation = [translation.re, translation.im];
+            this.offset = [offsetX, offsetY];
+
+            // Compute the width of the set for encoding and drawing.
+            var wn = {re: 1, im: 0};
+            const w = {re: real, im: imag};
+            var cSeriesForComputingWidth = {re: 0, im: 0};
+            for (var i = 0; i < this.k; i++){
+                const term = scalarComplexMult(this.coeffs[i], wn);
+                cSeriesForComputingWidth = complexAdd(term, cSeriesForComputingWidth);
+                wn = complexMult(w, wn);
             }
-            translation = complexAdd(translation, t);
+            const midpoint = 0.5*abs(cSeriesForComputingWidth);
+            var seriesForComputingWidth = 0;
+            for (var i = 0; i < this.k; i++){
+                seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
+            }
+            this.width = midpoint+seriesForComputingWidth;
+
+        } else {
+            this.translation = [0,0];
+            const modulus = Math.sqrt(real**2+imag**2);
+            this.offset = [-1/(1-modulus),-1/(1-modulus)];
+
+            this.width = 0;
+            for (var i = 0; i < this.k; i++){
+                this.width += Math.abs(this.coeffs[i])*(modulus)**i;
+            }
+            this.width *= 2;
         }
-        const modulus = Math.sqrt(real**2+imag**2);
-        translation = scalarComplexMult(-0.5, translation);
-        this.translation = [translation.re, translation.im];
-        this.offset = [-1/(1-modulus),-1/(1-modulus)];
-        var k = 0;
-        var wn = {re: 1, im: 0}
-        const w = {re: real, im: imag};
-        var cSeriesForComputingWidth = {re: 0, im: 0};
-        for (var i = 0; i < this.k; i++){
-            const term = scalarComplexMult(this.coeffs[i], wn);
-            cSeriesForComputingWidth = complexAdd(term, cSeriesForComputingWidth);
-            wn = complexMult(w, wn);
-        }
-        const midpoint = 0.5*abs(cSeriesForComputingWidth);
-        var seriesForComputingWidth = 0;
-        for (var i = 0; i < this.k; i++){
-            seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
-        }
-        this.width = 2/(1-modulus);
         if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;
