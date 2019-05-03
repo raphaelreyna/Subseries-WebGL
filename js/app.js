@@ -64,7 +64,7 @@ class App {
         checkIfOK(gl);
 
         // Initialize the data to send to the GPU.
-        const initData = createInitialData(this.stateSize, 2.3, [-0.640625,-0.3125]);
+        const initData = createInitialData(this.stateSize, 2/(1-0.7071), [-1/(1-0.7071),-1/(1-0.7071)]);
 
         // Create the programs from their shaders' paths.
         this.programs = {
@@ -215,7 +215,7 @@ class App {
         setupUniform(gl, program, 'statesize', '2fv', this.stateSize);
         setupUniform(gl, program, 'windowsize', '1f', this.width);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
-        setupUniform(gl, program, 'translation', '2fv', translation);
+        setupUniform(gl, program, 'translation', '2fv', [0,0]);
 
         // Render to the screen.
         drawPointsWithBlending(gl, 2**this.k);
@@ -248,9 +248,10 @@ class App {
             }
             translation = complexAdd(translation, t);
         }
+        const modulus = Math.sqrt(real**2+imag**2);
         translation = scalarComplexMult(-0.5, translation);
         this.translation = [translation.re, translation.im];
-        this.offset = [offsetX, offsetY];
+        this.offset = [-1/(1-modulus),-1/(1-modulus)];
         var k = 0;
         var wn = {re: 1, im: 0}
         const w = {re: real, im: imag};
@@ -265,7 +266,7 @@ class App {
         for (var i = 0; i < this.k; i++){
             seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
         }
-        this.width = midpoint+seriesForComputingWidth;
+        this.width = 2/(1-modulus);
         if (this.fString != "") {
             this.resetPoints();
             this.shouldReset = 1;

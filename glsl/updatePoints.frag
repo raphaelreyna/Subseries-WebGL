@@ -47,6 +47,6 @@ void main() {
   vec2 p = decodePoint(pointData);
   float s = decodeSwitch(switchData);
   float sw = getSwitchFromCode(s);
-  p += sw*newTerm;
+  p += (2.0*(sw-1.0)+1.0)*newTerm;
   gl_FragColor = encodePoint(p);
 }
