@@ -1,12 +1,11 @@
 function initGL(canvas, clearColor) {
     var gl = canvas.getContext('webgl');
     if (!gl) {
-		    console.log('WebGL not supported, falling back on experimental-webgl');
 		    gl = canvas.getContext('experimental-webgl');
 	  }
 
 	  if (!gl) {
-		    alert('Your browser does not support WebGL');
+        throw new Error('WebGL not supported');
 	  }
 
 	  gl.clearColor(clearColor[0],
@@ -21,13 +20,11 @@ function initGL(canvas, clearColor) {
 
 function checkIfOK(gl) {
     if (gl == null) {
-        alert('Could not initialize WebGL!');
         throw new Error('No WebGL');
     }
     if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
         var msg = 'Vertex shader texture access not available.' +
             'Try again on another platform.';
-        alert(msg);
         throw new Error(msg);
     }
 }

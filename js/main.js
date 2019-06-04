@@ -17,7 +17,6 @@ var theta = 0.7853;
 var real = 0.5;
 var imag = 0.5;
 var tracking = false;
-const app = new App(glCanvas, 16);
 const imInput = document.getElementById('imag');
 const reInput = document.getElementById('real');
 const rInput = document.getElementById('r');
@@ -27,6 +26,15 @@ const planeRect = planeCanvas.getBoundingClientRect();
 var rotating = false;
 var lw = false;
 const lwButton = document.getElementById("lwButton");
+var success = true;
+var app = null;
+try {
+    app = new App(glCanvas, 16);
+} catch(err) {
+    glCanvas.innerHTML = err.message;
+    alert(err.message);
+    success = false;
+}
 
 function updateReal() {
     real = parseFloat(reInput.value);
@@ -47,7 +55,7 @@ function updateImag() {
     theta = Math.atan2(imag, real);
     if (theta < 0) {
         theta = theta+2*Math.PI;
-    } 
+     }
     thetaInput.value = theta;
     mouseY = transformPointInverse(-imag);
 }
@@ -273,8 +281,11 @@ function transformPointInverse(x) {
     return (center) * (x + 1);
 }
 
-planeCanvas.addEventListener("mousemove", getMousePos, false);
-planeCanvas.addEventListener("click", toggleTracking);
-setupPlaneCanvas();
-update();
-run();
+if (success) {
+    planeCanvas.addEventListener("mousemove", getMousePos, false);
+    planeCanvas.addEventListener("click", toggleTracking);
+    setupPlaneCanvas();
+    update();
+    run();
+}
+
