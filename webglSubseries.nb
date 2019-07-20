@@ -1,0 +1,505 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     17796,        496]
+NotebookOptionsPosition[     17215,        473]
+NotebookOutlinePosition[     17571,        489]
+CellTagsIndexPosition[     17528,        486]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"scale", "=", 
+   FractionBox[
+    SuperscriptBox["256", "2"], "2.3"]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"offset", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"-", "0.640625"}], ",", 
+     RowBox[{"-", "0.3125"}]}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"decoder", "=", 
+   SuperscriptBox["256", 
+    RowBox[{"{", 
+     RowBox[{"1", ",", "2"}], "}"}]]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"encode", "[", "data_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"nData", "=", 
+      RowBox[{"scale", "*", 
+       RowBox[{"(", 
+        RowBox[{"data", "-", "offset"}], ")"}]}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Mod", "[", 
+         RowBox[{
+          RowBox[{"nData", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], ",", "256"}], "]"}], ",", 
+        RowBox[{"Floor", "[", 
+         RowBox[{
+          RowBox[{"nData", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], "/", "256"}], "]"}], ",", 
+        RowBox[{"Mod", "[", 
+         RowBox[{
+          RowBox[{"nData", "[", 
+           RowBox[{"[", "2", "]"}], "]"}], ",", "256"}], "]"}], ",", 
+        RowBox[{"Floor", "[", 
+         RowBox[{
+          RowBox[{"nData", "[", 
+           RowBox[{"[", "2", "]"}], "]"}], "/", "256"}], "]"}]}], "}"}], "/", 
+      "256"}]}]}], "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"decode", "[", "data_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"reData", "=", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"1", ";;", "2"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     
+     RowBox[{"imData", "=", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"3", ";;", "4"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     
+     RowBox[{"re", "=", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"decoder", ".", "reData"}], ")"}], "/", "scale"}], ")"}], 
+       "+", 
+       RowBox[{"offset", "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"im", "=", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"decoder", ".", "imData"}], ")"}], "/", "scale"}], ")"}], 
+       "+", 
+       RowBox[{"offset", "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"re", ",", "im"}], "}"}]}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.7644507805785093`*^9, 3.764451110525139*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"k", "=", "12"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"z", "=", 
+   RowBox[{"0.5", "+", 
+    RowBox[{"0.5", "*", "\[ImaginaryI]"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"subseries", "=", 
+   RowBox[{"Tuples", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", "1"}], "}"}], ",", "k"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"powers", "=", 
+   SuperscriptBox["z", 
+    RowBox[{"Range", "[", 
+     RowBox[{"0", ",", 
+      RowBox[{"k", "-", "1"}]}], "]"}]]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"terms", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"powers", "*", "#"}], ")"}], "&"}], "/@", "subseries"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"points", "=", 
+   RowBox[{"Total", "/@", "terms"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"points", "=", 
+   RowBox[{"ReIm", "/@", "points"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.764451142385809*^9, 3.7644513535951347`*^9}, {
+  3.764451434706139*^9, 3.76445145444289*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"size", "=", 
+   RowBox[{"Sqrt", "[", 
+    SuperscriptBox["2", "k"], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"encodedPoints", "=", 
+   RowBox[{"encode", "/@", "points"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"encodedPoints", "=", 
+   RowBox[{"Partition", "[", 
+    RowBox[{"encodedPoints", ",", "size"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"image", "=", 
+  RowBox[{"Image", "[", 
+   RowBox[{"encodedPoints", ",", 
+    RowBox[{"ColorSpace", "\[Rule]", "\"\<RGB\>\""}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.7644513933413877`*^9, 3.764451411691393*^9}, {
+  3.7644514701296577`*^9, 3.764451517417287*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"reals", " ", "=", " ", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"points", "[", 
+      RowBox[{"[", 
+       RowBox[{"#", ",", "1"}], "]"}], "]"}], "&"}], "/@", 
+    RowBox[{"Range", "[", 
+     RowBox[{"1", ",", 
+      RowBox[{"Length", "@", "points"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"imags", " ", "=", " ", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"points", "[", 
+      RowBox[{"[", 
+       RowBox[{"#", ",", "2"}], "]"}], "]"}], "&"}], "/@", 
+    RowBox[{"Range", "[", 
+     RowBox[{"1", ",", 
+      RowBox[{"Length", "@", "points"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"reMin", " ", "=", " ", 
+   RowBox[{"Min", "[", "reals", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"reMax", " ", "=", " ", 
+   RowBox[{"Max", "[", "reals", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"imMin", " ", "=", " ", 
+   RowBox[{"Min", "[", "imags", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"imMax", " ", "=", " ", 
+   RowBox[{"Max", "[", "imags", "]"}]}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.764989816382469*^9, 3.764990093103423*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"k0", " ", "=", " ", 
+   RowBox[{"Abs", "[", "z", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"k1", "=", 
+   RowBox[{"Abs", "[", 
+    RowBox[{"1", "-", "z"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"k2", "=", 
+   RowBox[{"Abs", "[", "0", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"k3", " ", "=", " ", 
+   RowBox[{"Abs", "[", "1", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"k", " ", "=", " ", 
+   RowBox[{"Max", "[", 
+    RowBox[{"{", 
+     RowBox[{"k0", ",", "k1", ",", "k2", ",", "k3"}], "}"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"sum", " ", "=", " ", 
+   RowBox[{"Sum", "[", 
+    RowBox[{
+     SuperscriptBox[
+      RowBox[{"Abs", "[", "z", "]"}], "n"], ",", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "2", ",", "12"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"radius", " ", "=", " ", 
+    RowBox[{"k", "+", "sum"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"center", " ", "=", "  ", 
+   RowBox[{
+    RowBox[{"0.5", "*", 
+     RowBox[{"Normal", "[", 
+      RowBox[{"Series", "[", 
+       RowBox[{
+        FractionBox["1", 
+         RowBox[{"1", "-", "x"}]], ",", 
+        RowBox[{"{", 
+         RowBox[{"x", ",", "0", ",", "12"}], "}"}]}], "]"}], "]"}]}], "/.", 
+    RowBox[{"{", 
+     RowBox[{"x", "\[Rule]", "z"}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.764990267924719*^9, 3.764990268742867*^9}, {
+  3.7649903096068497`*^9, 3.764990445287664*^9}, {3.764990475370339*^9, 
+  3.7649905601808987`*^9}, {3.7649906128480377`*^9, 3.76499061780233*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.764990567992352*^9, 3.7649906152784433`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"powers", "=", 
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"w", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], "+", 
+        RowBox[{
+         RowBox[{"w", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "*", "\[ImaginaryI]"}]}], ")"}], 
+      RowBox[{"Range", "[", 
+       RowBox[{"0", ",", "11"}], "]"}]]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"terms", "=", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"powers", "*", "#"}], ")"}], "&"}], "/@", "subseries"}]}], 
+    ";", "\[IndentingNewLine]", 
+    RowBox[{"points", "=", 
+     RowBox[{"Total", "/@", "terms"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"points", "=", 
+     RowBox[{"ReIm", "/@", "points"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"reals", " ", "=", " ", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"points", "[", 
+        RowBox[{"[", 
+         RowBox[{"#", ",", "1"}], "]"}], "]"}], "&"}], "/@", 
+      RowBox[{"Range", "[", 
+       RowBox[{"1", ",", 
+        RowBox[{"Length", "@", "points"}]}], "]"}]}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"imags", " ", "=", " ", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"points", "[", 
+        RowBox[{"[", 
+         RowBox[{"#", ",", "2"}], "]"}], "]"}], "&"}], "/@", 
+      RowBox[{"Range", "[", 
+       RowBox[{"1", ",", 
+        RowBox[{"Length", "@", "points"}]}], "]"}]}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"reMin", " ", "=", " ", 
+     RowBox[{"Min", "[", "reals", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"reMax", " ", "=", " ", 
+     RowBox[{"Max", "[", "reals", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"imMin", " ", "=", " ", 
+     RowBox[{"Min", "[", "imags", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"imMax", " ", "=", " ", 
+     RowBox[{"Max", "[", "imags", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"k0", " ", "=", " ", 
+     RowBox[{"Abs", "[", "w", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"k1", "=", 
+     RowBox[{"Abs", "[", 
+      RowBox[{"1", "-", "w"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"k2", "=", 
+     RowBox[{"Abs", "[", "0", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"k3", " ", "=", " ", 
+     RowBox[{"Abs", "[", "1", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"k", " ", "=", " ", 
+     RowBox[{"Max", "[", 
+      RowBox[{"{", 
+       RowBox[{"k0", ",", "k1", ",", "k2", ",", "k3"}], "}"}], "]"}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"sum", " ", "=", " ", 
+     RowBox[{"Sum", "[", 
+      RowBox[{
+       SuperscriptBox[
+        RowBox[{"Abs", "[", "z", "]"}], "n"], ",", 
+       RowBox[{"{", 
+        RowBox[{"n", ",", "2", ",", "12"}], "}"}]}], "]"}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"radius", " ", "=", " ", 
+     RowBox[{"k", "+", "sum"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"radius", "=", 
+     RowBox[{"radius", "*", "1.3"}]}], ";", "\[IndentingNewLine]", 
+    "\[IndentingNewLine]", 
+    RowBox[{"center", " ", "=", "  ", 
+     RowBox[{
+      RowBox[{"0.5", "*", 
+       RowBox[{"Normal", "[", 
+        RowBox[{"Series", "[", 
+         RowBox[{
+          FractionBox["1", 
+           RowBox[{"1", "-", "x"}]], ",", 
+          RowBox[{"{", 
+           RowBox[{"x", ",", "0", ",", "12"}], "}"}]}], "]"}], "]"}]}], "/.", 
+      
+      RowBox[{"{", 
+       RowBox[{"x", "\[Rule]", "z"}], "}"}]}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"Show", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"ListPlot", "[", 
+       RowBox[{"points", ",", " ", 
+        RowBox[{"PlotRange", "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"-", "2"}], ",", "2"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"-", "2"}], ",", "2"}], "}"}]}], "}"}]}]}], "]"}], ",", 
+      RowBox[{"Graphics", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"EdgeForm", "[", "Thick", "]"}], ",", "Transparent", ",", 
+         RowBox[{"Rectangle", "[", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"Re", "@", "center"}], "-", 
+              RowBox[{"0.5", "*", "radius"}]}], ",", 
+             RowBox[{
+              RowBox[{"Im", "@", "center"}], "-", 
+              RowBox[{"0.5", "*", "radius"}]}]}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"Re", "@", "center"}], "+", 
+              RowBox[{"0.5", "*", "radius"}]}], ",", 
+             RowBox[{
+              RowBox[{"Im", "@", "center"}], "+", 
+              RowBox[{"0.5", "*", "radius"}]}]}], "}"}]}], "]"}]}], "}"}], 
+       "]"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
+   RowBox[{"{", 
+    RowBox[{"w", ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", 
+       RowBox[{"-", "1"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "1"}], "}"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.764990622209012*^9, 3.764990763643853*^9}, {
+  3.764990803617016*^9, 3.764990835647612*^9}, {3.7649909074538927`*^9, 
+  3.764990909017411*^9}, {3.7649909482505083`*^9, 3.764990965761648*^9}, {
+  3.7649909958890247`*^9, 3.7649909976012897`*^9}, {3.764991082144464*^9, 
+  3.764991176481062*^9}, {3.764991237778329*^9, 3.7649912815919943`*^9}, {
+  3.764991404815935*^9, 3.764991435221681*^9}, {3.764991584041463*^9, 
+  3.764991589377798*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`w$$ = {-0.54, -0.29000000000000004`}, 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{
+      Hold[$CellContext`w$$], {-1, -1}, {1, 1}}}, Typeset`size$$ = {
+    360., {113., 117.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`w$85388$$ = {0, 0}}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, "Variables" :> {$CellContext`w$$ = {-1, -1}}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`w$$, $CellContext`w$85388$$, {0, 0}]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, 
+      "Body" :> ($CellContext`powers = (Part[$CellContext`w$$, 1] + 
+          Part[$CellContext`w$$, 2] I)^Range[0, 11]; $CellContext`terms = 
+        Map[$CellContext`powers #& , $CellContext`subseries]; \
+$CellContext`points = Map[Total, $CellContext`terms]; $CellContext`points = 
+        Map[ReIm, $CellContext`points]; $CellContext`reals = 
+        Map[Part[$CellContext`points, #, 1]& , 
+          Range[1, 
+           Length[$CellContext`points]]]; $CellContext`imags = 
+        Map[Part[$CellContext`points, #, 2]& , 
+          Range[1, 
+           Length[$CellContext`points]]]; $CellContext`reMin = 
+        Min[$CellContext`reals]; $CellContext`reMax = 
+        Max[$CellContext`reals]; $CellContext`imMin = 
+        Min[$CellContext`imags]; $CellContext`imMax = 
+        Max[$CellContext`imags]; $CellContext`k0 = 
+        Abs[$CellContext`w$$]; $CellContext`k1 = 
+        Abs[1 - $CellContext`w$$]; $CellContext`k2 = Abs[0]; $CellContext`k3 = 
+        Abs[1]; $CellContext`k = 
+        Max[{$CellContext`k0, $CellContext`k1, $CellContext`k2, \
+$CellContext`k3}]; $CellContext`sum = 
+        Sum[Abs[$CellContext`z]^$CellContext`n, {$CellContext`n, 2, 
+           12}]; $CellContext`radius = $CellContext`k + $CellContext`sum; \
+$CellContext`radius = $CellContext`radius 1.3; $CellContext`center = 
+        ReplaceAll[0.5 Normal[
+            Series[
+            1/(1 - $CellContext`x), {$CellContext`x, 0, 
+              12}]], {$CellContext`x -> $CellContext`z}]; Show[
+         ListPlot[$CellContext`points, PlotRange -> {{-2, 2}, {-2, 2}}], 
+         Graphics[{
+           EdgeForm[Thick], Transparent, 
+           
+           Rectangle[{
+            Re[$CellContext`center] - 0.5 $CellContext`radius, 
+             Im[$CellContext`center] - 0.5 $CellContext`radius}, {
+            Re[$CellContext`center] + 0.5 $CellContext`radius, 
+             Im[$CellContext`center] + 0.5 $CellContext`radius}]}]]), 
+      "Specifications" :> {{$CellContext`w$$, {-1, -1}, {1, 1}}}, 
+      "Options" :> {}, "DefaultOptions" :> {}],
+     ImageSizeCache->{405., {185., 190.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UndoTrackedVariables:>{Typeset`show$$, Typeset`bookmarkMode$$},
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{3.764991405761066*^9, 3.764991436230011*^9, 
+  3.7649915901065598`*^9}]
+}, Open  ]]
+},
+WindowSize->{808, 655},
+WindowMargins->{{4, Automatic}, {Automatic, 4}},
+FrontEndVersion->"10.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (December 10, \
+2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 2758, 83, 277, "Input"],
+Cell[3319, 105, 1093, 34, 133, "Input"],
+Cell[4415, 141, 696, 18, 87, "Input"],
+Cell[5114, 161, 1197, 36, 131, "Input"],
+Cell[6314, 199, 1709, 50, 207, "Input"],
+Cell[8026, 251, 94, 1, 28, "Input"],
+Cell[CellGroupData[{
+Cell[8145, 256, 5496, 143, 519, InheritFromParent],
+Cell[13644, 401, 3555, 69, 426, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -2,8 +2,8 @@ precision highp float;
 
 attribute vec2 index;
 
-uniform sampler2D points;
 uniform sampler2D switches;
+uniform sampler2D points;
 
 uniform vec2 statesize;
 uniform vec2 offset;

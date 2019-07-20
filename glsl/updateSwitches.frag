@@ -3,9 +3,8 @@ precision mediump int;
 
 varying vec2 index;
 
-uniform sampler2D state;
+uniform sampler2D switches;
 uniform sampler2D master;
-uniform int reset;
 
 const float BASE = 255.0;
 
@@ -28,17 +27,12 @@ float decode(vec4 data) {
 }
 
 void main() {
-  vec4 sampledData = texture2D(state, index);
+  vec4 sampledData = texture2D(switches, index);
   float counter = 255.0*sampledData.w;
-  if (reset == 0) {
-    float value = decode(sampledData);
-    value = floor(value / 2.0);
-    if (floor(mod(value, 2.0)) == 0.0) {
-      counter = counter + 1.0;
-    }
-    gl_FragColor = vec4(encode(value).xyz, counter/BASE);
+  float value = decode(sampledData);
+  value = floor(value / 2.0);
+  if (floor(mod(value, 2.0)) == 0.0) {
+    counter = counter + 1.0;
   }
-  else {
-    gl_FragColor = texture2D(master, index);
-  }
+  gl_FragColor = vec4(encode(value).xyz, counter/BASE);
 }

@@ -132,7 +132,7 @@ class App {
         bindTexture(gl, 1, t.switchesMaster);
 
         // Send attribute and uniform data to GPU.
-        setupAttributePointer(gl, program, 'quad', 2);
+        setupAttributePointer(gl, program, 'quad', 2, 0, 0);
         setupUniform(gl, program, 'state', 'li', 0);
         setupUniform(gl, program, 'master', 'li',1);
         setupUniform(gl, program, 'reset', 'li', this.shouldReset);

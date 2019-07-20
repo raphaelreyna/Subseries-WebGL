@@ -3,8 +3,8 @@ precision mediump int;
 
 varying vec2 index;
 
-uniform sampler2D points;
 uniform sampler2D switches;
+uniform sampler2D points;
 uniform vec2 newTerm;
 uniform vec2 offset;
 uniform float windowsize;
@@ -53,5 +53,6 @@ void main() {
   } else {
     p += (2.0*(sw-1.0)+1.0)*newTerm;
   }
-  gl_FragColor = encodePoint(p);
+  gl_FragColor = encodePoint(vec2(3,0.5));
+  //gl_FragColor = encodePoint(p);
 }

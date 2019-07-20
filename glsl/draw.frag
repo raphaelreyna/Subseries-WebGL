@@ -31,5 +31,6 @@ float decode(vec4 data) {
 }
 void main() {
   float c = (BASE/12.0)*counter;
-  gl_FragColor = vec4(1.0 - c, 0.0, c, 1.0);
+  //gl_FragColor = vec4(1.0 - c, 0.0, c, 1.0);
+  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
