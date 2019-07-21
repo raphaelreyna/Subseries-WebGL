@@ -1,3 +1,266 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+const BASE = 255;
+
+function fetch(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, Boolean(callback));
+    xhr.send();
+    return xhr.responseText;
+}
+
+function complexMult(a, b) {
+    const real = a.re*b.re-a.im*b.im;
+    const imag = a.re*b.im+a.im*b.re;
+    return {re: real, im: imag};
+}
+
+function scalarComplexMult(s, z) {
+    return {re:s*z.re, im:s*z.im};
+}
+
+function complexAdd(a, b) {
+    const real = a.re + b.re;
+    const imag = a.im + b.im;
+    return {re:real, im: imag};
+}
+
+function abs(a) {
+    return Math.sqrt(a.re**2+a.im**2);
+}
+
+// Encode the switch integer as a 4 digit base 256 number.
+// This encoding allows us to store the integers as a rgba texture.
+function encodeSwitch(value) {
+    var digits = [];
+    var quotient = value;
+    for (var i = 0; i < 4; i++) {
+        digits[i] = quotient % BASE;
+        quotient = Math.floor(quotient / BASE);
+    }
+    return digits;
+}
+
+// Encode a complex number as a 4 digit base 256 number.
+// This encoding allows us to store the numbers as a rgba texture.
+function encodePoint(re, im, scale, offset) {
+    const normalizedRe = scale*(re - offset[0]);
+    const normalizedIm = scale*(im - offset[1]);
+    const encodedPoint = [normalizedRe % BASE,
+                          Math.floor(normalizedRe / BASE),
+                          normalizedIm % BASE,
+                          Math.floor(normalizedIm / BASE)];
+    return encodedPoint;
+}
+
+function getCoeffs(fString, k) {
+    const zero = {x:0};
+    var coeffsList = [];
+
+    var counter = 1;
+    var factorial = 1;
+    var coeff = 0;
+
+    var f = math.parse(fString);
+
+    for (var i = 0; i < k+2; i++) {
+        coeff = f.eval(zero)/factorial;
+        factorial *= counter;
+        counter++;
+        f = math.derivative(f,'x');
+        coeffsList.push(coeff);
+    }
+    return coeffsList;
+}
+
+function getPowers(real, imag, k) {
+    var z = {re:real, im: imag};
+    var z0 = {re: 1, im: 0};
+    var powers = [z0];
+    for (var i = 0; i < k; i++){
+        const p = complexMult(powers[i], z);
+        powers.push(p);
+    }
+    return powers;
+}
+
+function initGL(canvas, clearColor) {
+    var gl = canvas.getContext('webgl');
+    if (!gl) {
+		    gl = canvas.getContext('experimental-webgl');
+	  }
+
+	  if (!gl) {
+        throw new Error('WebGL not supported');
+	  }
+
+	  gl.clearColor(clearColor[0],
+                  clearColor[1],
+                  clearColor[2],
+                  clearColor[3]);
+	  gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.DEPTH_TEST);
+
+    return gl;
+}
+
+function checkIfOK(gl) {
+    if (gl == null) {
+        throw new Error('No WebGL');
+    }
+    if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
+        var msg = 'Vertex shader texture access not available.' +
+            'Try again on another platform.';
+        throw new Error(msg);
+    }
+}
+
+function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('ERROR compiling shader!', gl.getShaderInfoLog(shader));
+    }
+    return shader;
+}
+
+function createProgram(gl, vertexShaderPath, fragmentShaderPath) {
+    const vShader = compileShader(gl,
+                                  gl.VERTEX_SHADER,
+                                  fetch(vertexShaderPath));
+    const fShader = compileShader(gl,
+                                  gl.FRAGMENT_SHADER,
+                                  fetch(fragmentShaderPath));
+    var program = gl.createProgram();
+	  gl.attachShader(program, vShader);
+	  gl.attachShader(program, fShader);
+	  gl.linkProgram(program);
+	  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		    console.error('ERROR linking program!', gl.getProgramInfoLog(program));
+		    return null;
+	  }
+	  gl.validateProgram(program);
+	  if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
+		    console.error('ERROR validating program!', gl.getProgramInfoLog(program));
+		    return null;
+    }
+    return program;
+}
+
+function initArrayBuffer(gl, data) {
+    var buffer = gl.createBuffer();
+	  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    return buffer;
+}
+
+function setupAttributePointer(gl,
+                              program,
+                              name,
+                              elementsPerAttribute,
+                              size,
+                              offset
+                             ) {
+    const location = gl.getAttribLocation(program, name);
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location,
+                           elementsPerAttribute,
+                           gl.FLOAT,
+                           gl.FALSE,
+                           size?size * Float32Array.BYTES_PER_ELEMENT:0,
+                           offset?offset * Float32Array.BYTES_PER_ELEMENT:0
+                          );
+    return location;
+}
+
+function setupUniform(gl,
+                      program,
+                      name,
+                      type,
+                      data) {
+    const location = gl.getUniformLocation(program, name);
+    switch (type) {
+    case 'li':
+        gl.uniform1i(location, data);
+        break;
+    case '1f':
+        gl.uniform1f(location, data);
+        break;
+    case '2fv':
+        const packedData = Float32Array.from(data);
+        gl.uniform2fv(location, packedData);
+        break;
+    }
+}
+
+function makeTexture(gl, size, data) {
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+		    gl.TEXTURE_2D, // Target
+        0, // Level
+        gl.RGBA, // Internal format
+        size[0], // Width
+        size[1], // Height
+        0, // Border
+        gl.RGBA, //Format
+		    gl.UNSIGNED_BYTE, // Type
+		    data // Data
+	  );
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+}
+
+function bindTexture(gl, location, texture) {
+    gl.activeTexture(gl.TEXTURE0 + location);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+}
+
+function initFrameBuffer(gl, texture) {
+    var framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, // Target
+                            gl.COLOR_ATTACHMENT0, // Attachment
+                            gl.TEXTURE_2D, // Texture Target
+                            texture, // Texture
+                            0 // Level
+                           );
+    return framebuffer;
+}
+
+function useFramebufferWithTex(gl, framebuffer, texture) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                            gl.COLOR_ATTACHMENT0,
+                            gl.TEXTURE_2D,
+                            texture,
+                            0);
+}
+
+function useDefaultFramebuffer(gl) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+function squareBuffer(gl) {
+    const data = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+    return initArrayBuffer(gl, data);
+}
+
+function drawPointsWithBlending(gl, count) {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.drawArrays(gl.POINTS, 0, count-2);
+    gl.disable(gl.BLEND);
+}
+
 // Initialize indexes as [x0,y0,x1,y1,x2,y2,...].
 // Initialize all points as 0+0i, encoded.
 // Initialize switches as [a0,b0,c0,d0,a1,b1,c1,d2,...],
@@ -34,10 +297,9 @@ function createInitialData(stateSize, windowSize, offset) {
     return data;
 }
 
-class App {
+class SubseriesPlotterLogic {
     constructor(canvas, k){
         this.coeffs = [];
-        this.fString = "";
         this.powers = [];
         this.terms = [];
         this.offset = null;
@@ -47,10 +309,9 @@ class App {
         // This is for a k-subautomatic subseries.
         this.k = k;
 
-        // Grab the canvas and its size then compute the scale.
+        // Grab the canvas and its size.
         this.canvas = canvas;
-        this.viewSize = new Float32Array([canvas.width, canvas.height]);
-        this.scale = Math.floor(Math.pow(BASE, 2) / Math.max(canvas.width, canvas.height));
+        this.canvasSize = new Float32Array([canvas.width, canvas.height]);
 
         // Compute the size of the state textures
         this.stateSize = new Float32Array([Math.ceil(Math.sqrt(2**k)), Math.floor(Math.sqrt(2**k))]);
@@ -145,9 +406,10 @@ class App {
 
         // Update the counter that controls when the switches are reset.
         this.updateResetCounter();
-}
+    }
 
-    addTerm(term) {
+    addTerm() {
+        const term = this.terms[this.counter];
         const gl = this.gl;
         const program = this.programs.updatePoints;
         const t = this.textures;
@@ -174,7 +436,7 @@ class App {
         setupUniform(gl, program, 'points', 'li', 0);
         setupUniform(gl, program, 'switches', 'li', 1);
         setupUniform(gl, program, 'windowsize', '1f', this.width);
-        setupUniform(gl, program, 'newTerm', '2fv', term);
+        setupUniform(gl, program, 'newTerm', '2fv', [term.re,term.im]);
         setupUniform(gl, program, 'offset', '2fv', this.offset);
         setupUniform(gl, program, 'lw', 'li', this.lw);
 
@@ -198,7 +460,7 @@ class App {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // Render into a viewport the size of the canvas.
-        gl.viewport(0, 0, this.viewSize[0], this.viewSize[1]);
+        gl.viewport(0, 0, this.canvasSize[0], this.canvasSize[1]);
 
         // Bind the buffer that contains the indexes for the points.
         // One index pair per point/subseries.
@@ -223,24 +485,18 @@ class App {
         drawPointsWithBlending(gl, 2**this.k);
     }
 
-    setupForDrawLoop(fString, real, imag) {
-        // Check if function has changed.
-        // If so, we need to recompute the coefficients
-        if (this.fString != fString) {
-            this.fString = fString;
-            this.coeffs = getCoeffs(this.fString, this.k);
-        }
+    setupForDrawLoop(real, imag, coeffs) {
+        this.coeffs = coeffs;
         // Compute the sequence of powers for the given complex number.
         this.powers = getPowers(real, imag, this.k);
         // Compute the terms of the function evaluation at the given complex number.
         this.terms = [];
-        for (var i = 0; i < this.k; i++){
+        for (var i = 0; i <= this.k; i++){
             const c = this.coeffs[i];
             const zn = this.powers[i];
             const term = scalarComplexMult(c, zn);
             this.terms.push(term);
         }
-
         // Check if we are computing a subseries or Littlewood series.
         // Otherwise we set the translation for drawing to the origin.
         if (this.lw === 0) {
@@ -263,17 +519,13 @@ class App {
             this.offset = [offsetX, offsetY];
 
             // Compute the width of the set for encoding and drawing.
-            var wn = {re: 1, im: 0};
-            const w = {re: real, im: imag};
             var cSeriesForComputingWidth = {re: 0, im: 0};
-            for (var i = 0; i < this.k; i++){
-                const term = scalarComplexMult(this.coeffs[i], wn);
-                cSeriesForComputingWidth = complexAdd(term, cSeriesForComputingWidth);
-                wn = complexMult(w, wn);
+            for (var i = 0; i <= this.k; i++){
+                cSeriesForComputingWidth = complexAdd(this.terms[i], cSeriesForComputingWidth);
             }
             const midpoint = 0.5*abs(cSeriesForComputingWidth);
             var seriesForComputingWidth = 0;
-            for (var i = 0; i < this.k; i++){
+            for (var i = 0; i <= this.k; i++){
                 seriesForComputingWidth += Math.abs(this.coeffs[i])*(Math.sqrt(real**2+imag**2))**i;
             }
             this.width = midpoint+seriesForComputingWidth;
@@ -289,13 +541,12 @@ class App {
             }
             this.width *= 2;
         }
-        if (this.fString != "") {
-            this.resetPoints();
-            this.shouldReset = 1;
-            this.updateSwitches();
-            this.counter = 0;
-            this.shouldReset = 0;
-        }
+        this.resetPoints();
+        this.shouldReset = 1;
+        this.updateSwitches();
+        this.counter = 0;
+        this.shouldReset = 0;
+        this.needsAnimationFrame = true;
     }
 
     resetPoints(){
@@ -351,8 +602,74 @@ class App {
         }
         this.counter++;
         if (this.counter % 2**this.k === 0) {
-            this.shouldReset = 1
+            this.shouldReset = 1;
         }
 
     }
+
+    step() {
+        if (this.counter < this.k) {
+            this.addTerm();
+            this.updateSwitches();
+            this.needsAnimationFrame = true;
+        } else {
+            this.draw();
+            this.needsAnimationFrame = false;
+        }
+    }
 }
+class SubseriesPlotter extends React.Component {
+    constructor(props) {
+        super(props);
+        this.canvas = {
+            ref: React.createRef(),
+            element: null
+        };
+        this.logic = null;
+        this.glDrawLoop = this.glDrawLoop.bind(this);
+        this.coeffs = [];
+        this.fString = "";
+        this.k = 17;
+    }
+
+    componentDidMount() {
+        const canvas = this.canvas;
+        canvas.element = ReactDOM.findDOMNode(canvas.ref.current);
+        this.logic = new SubseriesPlotterLogic(canvas.element, 17);
+        this.computeCoeffs("1/(1-x)");
+        this.logic.setupForDrawLoop(0.5, 0.5, this.coeffs);
+        requestAnimationFrame(this.glDrawLoop);
+    }
+
+    glDrawLoop() {
+        const logic = this.logic;
+        while (logic.needsAnimationFrame) {
+            logic.step();
+        }
+    }
+
+    computeCoeffs(fString) {
+        if (this.fString != fString) {
+            this.fString = fString;
+            this.coeffs = getCoeffs(this.fString, this.k);
+        }
+    }
+
+    plot(fString, re, im) {
+        this.computeCoeffs(fString);
+        this.logic.setupForDrawLoop(re, im, this.coeffs);
+        requestAnimationFrame(this.glDrawLoop);
+    }
+
+    render() {
+        return (
+                <canvas
+            ref={this.canvas.ref}
+            width={512}
+            height={512}
+            ></canvas>
+        );
+    }
+}
+
+export default SubseriesPlotter;

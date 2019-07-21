@@ -1,0 +1,39 @@
+{
+  "name": "SubseriesWebGL",
+  "version": "1.0.0",
+  "description": "Plots subseries of holomorphic functions.",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --mode development --open --hot",
+    "build": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raphaelreyna/Subseries-WebGL.git"
+  },
+  "keywords": [
+    "Math",
+    "Mathematics"
+  ],
+  "author": "Raphael Reyna",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/raphaelreyna/Subseries-WebGL/issues"
+  },
+  "homepage": "https://github.com/raphaelreyna/Subseries-WebGL#readme",
+  "dependencies": {
+    "@rreyna/react-tracker-canvas": "^0.9.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
+    "babel-preset-react-app": "^9.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2"
+  }
+}
