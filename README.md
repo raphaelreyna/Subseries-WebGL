@@ -1,6 +1,8 @@
 # Subseries-WebGL
 Compute and plot evaluations of subseries of holomorphic functions using WebGL entirely in your browser.
 
+[Check it out](https://raphaelreyna.works/Subseries-WebGL)
+
 ### What are subseries?
 A subseries is to a series what a subsequence is to a sequence.
 
