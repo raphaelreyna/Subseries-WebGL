@@ -621,6 +621,10 @@ class SubseriesPlotterLogic {
 class SubseriesPlotter extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            z: props.z,
+            f: props.f
+        };
         this.canvas = {
             ref: React.createRef(),
             element: null
@@ -628,16 +632,21 @@ class SubseriesPlotter extends React.Component {
         this.logic = null;
         this.glDrawLoop = this.glDrawLoop.bind(this);
         this.coeffs = [];
-        this.fString = "";
-        this.k = 17;
+        this.k = props.k;
     }
 
     componentDidMount() {
         const canvas = this.canvas;
         canvas.element = ReactDOM.findDOMNode(canvas.ref.current);
-        this.logic = new SubseriesPlotterLogic(canvas.element, 17);
-        this.computeCoeffs("1/(1-x)");
-        this.logic.setupForDrawLoop(0.5, 0.5, this.coeffs);
+        this.logic = new SubseriesPlotterLogic(canvas.element, this.k);
+        this.computeCoeffs(this.state.f);
+        this.logic.setupForDrawLoop(this.state.z.re, this.state.z.im, this.coeffs);
+        requestAnimationFrame(this.glDrawLoop);
+    }
+
+    componentDidUpdate() {
+        this.computeCoeffs(this.state.f);
+        this.logic.setupForDrawLoop(this.state.z.re, this.state.z.im, this.coeffs);
         requestAnimationFrame(this.glDrawLoop);
     }
 
@@ -665,8 +674,8 @@ class SubseriesPlotter extends React.Component {
         return (
                 <canvas
             ref={this.canvas.ref}
-            width={512}
-            height={512}
+            width={this.props.width}
+            height={this.props.height}
             ></canvas>
         );
     }
