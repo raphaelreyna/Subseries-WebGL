@@ -79,7 +79,7 @@ class App extends React.Component {
                             ref={this.plotterRef}
                             z={{re: 0.5, im: 0.5}}
                             f={this.fString} k={16}
-                            width={600} height={600}/>
+                            canvasDimensions={{width: 600, height: 600}}/>
                     </Grid>
                 </Grid>
             </Grid>

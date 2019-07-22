@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {TrackerCanvas} from '@rreyna/react-tracker-canvas';
 
 const BASE = 255;
 
@@ -298,7 +299,8 @@ function createInitialData(stateSize, windowSize, offset) {
 }
 
 class SubseriesPlotterLogic {
-    constructor(canvas, k){
+    constructor(canvas, k, postDrawCallback){
+        this.postDrawCallback = postDrawCallback ? postDrawCallback : ()=>{};
         this.coeffs = [];
         this.powers = [];
         this.terms = [];
@@ -483,6 +485,7 @@ class SubseriesPlotterLogic {
 
         // Render to the screen.
         drawPointsWithBlending(gl, 2**this.k);
+        this.postDrawCallback(gl);
     }
 
     setupForDrawLoop(real, imag, coeffs) {
@@ -618,30 +621,31 @@ class SubseriesPlotterLogic {
         }
     }
 }
-class SubseriesPlotter extends React.Component {
+class SubseriesPlotter extends TrackerCanvas {
     constructor(props) {
         super(props);
         this.state = {
             z: props.z,
             f: props.f
         };
-        this.canvas = {
-            ref: React.createRef(),
-            element: null
-        };
         this.logic = null;
         this.glDrawLoop = this.glDrawLoop.bind(this);
         this.coeffs = [];
         this.k = props.k;
+        this.postDrawCallback = this.postDrawCallback.bind(this);
     }
 
     componentDidMount() {
+        this.updateCanvasInfo()
+            .initCanvas()
+            .mounted = true;
         const canvas = this.canvas;
         canvas.element = ReactDOM.findDOMNode(canvas.ref.current);
-        this.logic = new SubseriesPlotterLogic(canvas.element, this.k);
+        this.logic = new SubseriesPlotterLogic(canvas.element, this.k, this.postDrawCallback);
         this.computeCoeffs(this.state.f);
         this.logic.setupForDrawLoop(this.state.z.re, this.state.z.im, this.coeffs);
         requestAnimationFrame(this.glDrawLoop);
+        return this;
     }
 
     componentDidUpdate() {
@@ -650,6 +654,15 @@ class SubseriesPlotter extends React.Component {
         requestAnimationFrame(this.glDrawLoop);
     }
 
+    updateCanvasInfo() {
+        const canvas = this.canvas;
+        canvas.element = ReactDOM.findDOMNode(this.canvas.ref.current);
+        const computedStyle = window.getComputedStyle(canvas.element);
+        canvas.computedWidth = parseFloat(computedStyle.width);
+        canvas.computedHeight = parseFloat(computedStyle.height);
+        canvas.boundingClientRect = canvas.element.getBoundingClientRect();
+        return this;
+    }
     glDrawLoop() {
         const logic = this.logic;
         while (logic.needsAnimationFrame) {
@@ -670,12 +683,22 @@ class SubseriesPlotter extends React.Component {
         requestAnimationFrame(this.glDrawLoop);
     }
 
+    postDrawCallback(gl) {
+        var pixel = new Uint8Array(4);
+        gl.readPixels(this.rawMouse.x, gl.drawingBufferHeight-this.rawMouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        console.log(pixel);
+    }
+
+    redraw() {
+        this.logic.draw();
+    }
+
     render() {
         return (
                 <canvas
             ref={this.canvas.ref}
-            width={this.props.width}
-            height={this.props.height}
+            width={this.props.canvasDimensions.width}
+            height={this.props.canvasDimensions.height}
             ></canvas>
         );
     }
