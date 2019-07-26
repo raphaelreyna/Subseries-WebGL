@@ -1,6 +1,62 @@
 import React from 'react';
 import {TextField, Button} from '@material-ui/core';
 
+class PickerControlsForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            centerX: 0,
+            centerY: 0,
+            width: 2,
+        }
+        this.callback = props.onChangeCallback;
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
+        const value = event.target.value;
+        const name = event.target.id;
+        if (value == "" || value == undefined) {
+            this.setState({[name]: ""});
+            return;
+        } else {
+            this.setState({[name]: value});
+        }
+    }
+
+    componentDidUpdate() {
+        this.callback(this.state);
+    }
+
+    render() {
+        return (
+            <form noValidate autoComplete={"off"}
+                 onSubmit={(event)=>{event.preventDefault()}}>
+                <TextField
+                    id="centerX"
+                    label="CenterX"
+                    value={this.state.centerX}
+                    onChange={this.handleChange}
+                    margin={"normal"}/>
+                <br/>
+                <TextField
+                    id="centerY"
+                    label="CenterY"
+                    value={this.state.centerY}
+                    onChange={this.handleChange}
+                    margin={"normal"}/>
+                <br/>
+                <TextField
+                    id="width"
+                    label="Width"
+                    value={this.state.width}
+                    onChange={this.handleChange}
+                    margin={"normal"}/>
+            </form>
+        );
+    }
+}
+
 class FunctionForm extends React.Component {
     constructor(props) {
         super(props);
@@ -58,14 +114,6 @@ class ComplexNumberForm extends React.Component {
         this.handleImChanged = this.handleImChanged.bind(this);
         this.handleAbsChanged = this.handleAbsChanged.bind(this);
         this.handleArgChanged = this.handleArgChanged.bind(this);
-    }
-
-    makeChangeHandler(id) {
-        var func = function (event) {
-            this.z[id] = event.target.value;
-            this.onChangeCallback(this.z);
-        }
-        return func.bind(this);
     }
 
     handleReChanged(event) {
@@ -204,4 +252,4 @@ class ComplexNumberForm extends React.Component {
     }
 }
 
-export {FunctionForm, ComplexNumberForm};
+export {PickerControlsForm, FunctionForm, ComplexNumberForm};

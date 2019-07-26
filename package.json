@@ -4,8 +4,8 @@
   "description": "Plots subseries of holomorphic functions.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --mode development --open --hot",
-    "build": "webpack --mode production"
+    "start": "export BABEL_ENV='development' && webpack-dev-server --mode development --open --hot && unset BABEL_ENV",
+    "build": "export BABEL_ENV='production' && webpack --mode production unset BABEL_ENV"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/raphaelreyna/Subseries-WebGL#readme",
   "dependencies": {
     "@material-ui/core": "^4.2.1",
-    "@rreyna/react-tracker-canvas": "^0.9.0",
+    "@rreyna/react-tracker-canvas": "^1.5.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },

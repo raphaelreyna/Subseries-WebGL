@@ -1,8 +1,8 @@
 import React from 'react';
 import {render} from 'react-dom';
 import SubseriesPlotter from './react-subseries-plotter.js';
-import {FunctionForm, ComplexNumberForm} from './form.jsx'
-import {ControlledTrackerPlane} from '@rreyna/react-tracker-canvas';
+import {PickerControlsForm, FunctionForm, ComplexNumberForm} from './form.jsx'
+import {TrackerCartesianPlane, intervalFromLenCen} from '@rreyna/react-tracker-canvas';
 
 import {Grid} from '@material-ui/core';
 
@@ -10,6 +10,7 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.plotterRef = React.createRef();
+        this.pickerRef = React.createRef();
         this.handleCNFormChange = this.handleCNFormChange.bind(this);
         this.handleFunctionFormSubmission = this.handleFunctionFormSubmission.bind(this);
         this.handleMouseMoved = this.handleMouseMoved.bind(this);
@@ -18,10 +19,9 @@ class App extends React.Component {
     }
 
     handleMouseMoved(mouse) {
-        const z = mouse.cartesian;
         this.z = {
-            re: z.x,
-            im: z.y
+            re: mouse.x,
+            im: mouse.y
         };
         this.setPlotterState();
     }
@@ -48,6 +48,19 @@ class App extends React.Component {
         this.setPlotterState();
     }
 
+    handlePickerControlsChange(data) {
+        console.log(data);
+        const centerX = parseFloat(data.centerX);
+        const centerY = parseFloat(data.centerY);
+        const width = parseFloat(data.width);
+        this.pickerRef.current.setState({
+            bounds: {
+                horizontal: intervalFromLenCen(width, centerX),
+                vertical: intervalFromLenCen(width, centerY)
+            }
+        });
+    }
+
     render() {
         return (
             <Grid container
@@ -66,10 +79,14 @@ class App extends React.Component {
                             onChange={this.handleCNFormChange}/>
                     </Grid>
                     <Grid item>
-                        <ControlledTrackerPlane
-                            canvasDimensions={{width: 300, height: 300}}
+                        <TrackerCartesianPlane
+                            ref={this.pickerRef}
                             onMouseMoved={this.handleMouseMoved}
                         />
+                    </Grid>
+                    <Grid item>
+                        <PickerControlsForm
+                        onChangeCallback={this.handlePickerControlsChange.bind(this)}/>
                     </Grid>
                 </Grid>
                 <Grid container item
