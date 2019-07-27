@@ -26,6 +26,7 @@ const cXInput = document.getElementById('centerX');
 const cYInput = document.getElementById('centerY');
 const widthInput = document.getElementById('width');
 const fxn = document.getElementById("fxn");
+const kInput = document.getElementById("k");
 var rotating = false;
 var lw = false;
 const lwButton = document.getElementById("lwButton");
@@ -42,16 +43,19 @@ rInput.addEventListener("keyup", updateMagnitude);
 thetaInput.addEventListener("keyup", updateTheta);
 fxn.addEventListener("keyup", updateFxn);
 lwButton.addEventListener("click", toggleLW);
+kInput.addEventListener("keyup", updateK);
 
 
 var tracker = React.createRef();
 
-try {
-    app = new App(glCanvas, 17);
-} catch(err) {
-    glCanvas.innerHTML = err.message;
-    alert(err.message);
-    success = false;
+function makeNewPlotter(degree) {
+    try {
+        app = new App(glCanvas, degree);
+    } catch(err) {
+        glCanvas.innerHTML = err.message;
+        alert(err.message);
+        success = false;
+    }
 }
 
 function toggleRotation() {
@@ -155,6 +159,13 @@ function updateBounds(event) {
     }
 }
 
+function updateK(event) {
+    if (event.keyCode === 13) {
+        makeNewPlotter(kInput.value);
+        run();
+    }
+}
+
 function gldrawloop() {
     if (app.counter < app.k) {
         const t = app.terms[app.counter];
@@ -210,6 +221,8 @@ function handleMouseChanged(data) {
     thetaInput.value = theta;
     run();
 }
+
+makeNewPlotter(kInput.value);
 
 if (success) {
     render(<TrackerCartesianPlane
