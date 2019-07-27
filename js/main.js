@@ -5,9 +5,10 @@ import {TrackerCartesianPlane, intervalFromLenCen} from '@rreyna/react-tracker-c
 const winHeight = window.innerHeight;
 const winWidth = window.innerWidth;
 const winDiameter = Math.max(winHeight, winWidth);
+const winmin = Math.min(winHeight, winWidth);
 const glCanvas = document.getElementById('glCanvas');
-glCanvas.height = 0.75*winDiameter;
-glCanvas.width = 0.75*winDiameter;
+glCanvas.height = winmin;
+glCanvas.width = winmin;
 const left = document.getElementById('left');
 const planeSize = window.getComputedStyle(left).width;
 const nplaneSize = parseFloat(planeSize);
@@ -21,6 +22,9 @@ const imInput = document.getElementById('imag');
 const reInput = document.getElementById('real');
 const rInput = document.getElementById('r');
 const thetaInput = document.getElementById('theta');
+const cXInput = document.getElementById('centerX');
+const cYInput = document.getElementById('centerY');
+const widthInput = document.getElementById('width');
 const fxn = document.getElementById("fxn");
 var rotating = false;
 var lw = false;
@@ -29,6 +33,9 @@ var success = true;
 var app = null;
 var f = "1/(1-x)";
 document.getElementById('rotButton').addEventListener("click", toggleRotation);
+cXInput.addEventListener("keyup", updateBounds);
+cYInput.addEventListener("keyup", updateBounds);
+widthInput.addEventListener("keyup", updateBounds);
 reInput.addEventListener("keyup", updateReal);
 imInput.addEventListener("keyup", updateImag);
 rInput.addEventListener("keyup", updateMagnitude);
@@ -36,10 +43,11 @@ thetaInput.addEventListener("keyup", updateTheta);
 fxn.addEventListener("keyup", updateFxn);
 lwButton.addEventListener("click", toggleLW);
 
+
 var tracker = React.createRef();
 
 try {
-    app = new App(glCanvas, 16);
+    app = new App(glCanvas, 17);
 } catch(err) {
     glCanvas.innerHTML = err.message;
     alert(err.message);
@@ -130,6 +138,20 @@ function updateTheta(event) {
                     x: real, y: imag
                 }
             });
+    }
+}
+
+function updateBounds(event) {
+    const cx = parseFloat(cXInput.value);
+    const cy = parseFloat(cYInput.value);
+    const w = parseFloat(widthInput.value);
+    if (event.keyCode === 13) {
+        tracker.current.setState({
+            bounds: {
+                horizontal: intervalFromLenCen(w, cx),
+                vertical: intervalFromLenCen(w, cy)
+            }
+        });
     }
 }
 
