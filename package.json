@@ -1,0 +1,36 @@
+{
+  "name": "Subseries",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js/main.js",
+  "scripts": {
+    "start": "export BABEL_ENV='development' && webpack-dev-server --mode development --open --hot && unset BABEL_ENV",
+    "build": "export BABEL_ENV='production' && webpack --mode production && unset BABEL_ENV"
+  },
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "@rreyna/react-tracker-canvas": "^1.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
+    "babel-preset-react-app": "^9.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raphaelreyna/Subseries-WebGL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/raphaelreyna/Subseries-WebGL/issues"
+  },
+  "homepage": "https://github.com/raphaelreyna/Subseries-WebGL#readme"
+}

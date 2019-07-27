@@ -11,27 +11,23 @@
     <div id="content">
         <div id="left" width="350px">
             <div id="formWrapper">
-                <form>
                     f(x) =
                     <input type="text" id="fxn" value="1/(1-x)">
                     <br>
                     Re(x) =
-                    <input type="number" onkeydown="updateReal()" step="any" id="real" value=0.5 class="inner">
+                    <input type="number" step="any" id="real" value=0.5 class="inner">
                     Im(x) =
-                    <input type="number" onkeydown="updateImag()" id="imag" value=0.5>
+                    <input type="number" id="imag" value=0.5>
                     <br>
                     r =
-                    <input type="number" onkeydown="updateMagnitude()" id="r" value=0.7071 class="inner">
+                    <input type="number" id="r" value=0.7071 class="inner">
                     θ =
-                    <input type="number" onkeydown="updateTheta()" id="theta" value=0.7853>
+                    <input type="number" id="theta" value=0.7853>
                     <br>
-                    <button onclick="run()">Plot</button>
-                    <button onclick="toggleRotation()">Toggle Rotation</button>
-                    <button onclick="toggleLW()" id="lwButton">Switch to Littlewood (experimental)</button>
-                </form>
+                    <button id="rotButton">Toggle Rotation</button>
+                    <button id="lwButton">Switch to Littlewood (experimental)</button>
             </div>
-            <div id="cPlaneWrapper">
-                <canvas id="cPlane"></canvas>
+            <div id="picker">
             </div>
         </div>
         <div id="right">
@@ -47,7 +43,7 @@
     <script src="js/misc.js"></script>
     <script src="js/gl-helper.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/main.js"></script>
+    <script src="dist/bundle.js"></script>
 </footer>
 
 </html>
