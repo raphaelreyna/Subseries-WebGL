@@ -7,6 +7,13 @@ function fetch(url, callback) {
     return xhr.responseText;
 }
 
+function Nfetch(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, Boolean(callback));
+    xhr.send();
+    return JSON.parse(xhr.responseText);
+}
+
 function complexMult(a, b) {
     const real = a.re*b.re-a.im*b.im;
     const imag = a.re*b.im+a.im*b.re;
@@ -52,22 +59,29 @@ function encodePoint(re, im, scale, offset) {
     return encodedPoint;
 }
 
-function getCoeffs(fString, k) {
+function getCoeffs(fString, k, remote) {
     const zero = {x:0};
     var coeffsList = [];
 
-    var counter = 1;
-    var factorial = 1;
-    var coeff = 0;
+    if (remote === true) {
+        var url = "http://192.168.0.153/?fxn=" + encodeURIComponent(fString);
+        url = url+"&deg="+k.toString();
+        coeffsList = Nfetch(url);
+    } else {
+        var counter = 1;
+        var factorial = 1;
+        var coeff = 0;
 
-    var f = math.parse(fString);
+        var f = math.parse(fString);
+        const kk = parseFloat(k)+2;
 
-    for (var i = 0; i < k+2; i++) {
-        coeff = f.eval(zero)/factorial;
-        factorial *= counter;
-        counter++;
-        f = math.derivative(f,'x');
-        coeffsList.push(coeff);
+        for (var i = 0; i < kk; i++) {
+            coeff = f.eval(zero)/factorial;
+            factorial *= counter;
+            counter++;
+            f = math.derivative(f,'x');
+            coeffsList.push(coeff);
+        }
     }
     return coeffsList;
 }

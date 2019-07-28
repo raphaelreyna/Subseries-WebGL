@@ -236,3 +236,7 @@ if (success) {
     run(0.5, 0.5);
 }
 
+function handleCoeffs(data) {
+    console.log(this.responseText);
+}
+
