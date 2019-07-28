@@ -149,7 +149,7 @@ function updateBounds(event) {
     const cx = parseFloat(cXInput.value);
     const cy = parseFloat(cYInput.value);
     const w = parseFloat(widthInput.value);
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && !isNaN(cx) && !isNaN(cy) && !isNaN(w)) {
         tracker.current.setState({
             bounds: {
                 horizontal: intervalFromLenCen(w, cx),
@@ -160,7 +160,7 @@ function updateBounds(event) {
 }
 
 function updateK(event) {
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && !isNaN(parseFloat(kInput.value))) {
         makeNewPlotter(kInput.value);
         run();
     }
