@@ -65,7 +65,7 @@ function getCoeffs(fString, k, remote) {
     var coeffsList = [];
 
     if (remote === true) {
-        var url = "https://54.219.71.48/?fxn=" + encodeURIComponent(fString);
+        var url = "https://taylor-series.herokuapp.com/?fxn=" + encodeURIComponent(fString);
         url = url+"&deg="+k.toString();
         coeffsList = Nfetch(url);
     } else {
