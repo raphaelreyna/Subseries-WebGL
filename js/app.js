@@ -229,6 +229,9 @@ class App {
         if (this.fString != fString) {
             this.fString = fString;
             this.coeffs = getCoeffs(this.fString, this.k, true);
+            if (this.coeffs === null) {
+                alert("Could not connect to backend server on Heroku.\n It was probably asleep and is now spinning back up.\n Please try reloading the page.");
+            }
         }
         // Compute the sequence of powers for the given complex number.
         this.powers = getPowers(real, imag, this.k);

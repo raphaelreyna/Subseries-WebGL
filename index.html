@@ -7,37 +7,40 @@
 </head>
 
 <body>
-    <div id="navbar">Subseries Plotter</div>
     <div id="content">
         <div id="left" width="350px">
             <div id="formWrapper">
                     f(x) =
-                    <input type="text" id="fxn" value="1/(1-x)">
-                    k = 
+                    <input type="text" id="fxn" value="1/(1-x)" class="inner">
+
+                    k =
                     <input type="number" id="k" value="16">
                     <br>
+
                     Re(x) =
                     <input type="number" step="any" id="real" value=0.5 class="inner">
                     Im(x) =
                     <input type="number" id="imag" value=0.5>
                     <br>
-                    r =
+                    |x| =
                     <input type="number" id="r" value=0.7071 class="inner">
-                    θ =
+                    Arg(x) =
                     <input type="number" id="theta" value=0.7853>
                     <br>
                     <button id="rotButton">Toggle Rotation</button>
-                    <button id="lwButton">Switch to Littlewood (experimental)</button>
+                    <button id="lwButton">Littlewood (experimental)</button>
             </div>
-            <div id="picker">
-            </div>
-            <div>
-                CenterX = 
-                <input type="number" id="centerX" value=0>
-                CenterY = 
-                <input type="number" id="centerY" value=0>
-                Width = 
-                <input type="number" id="width" value=2>
+            <div id="trackerWrapper">
+                <div id="controls">
+                    <h4>Recenter</h4>
+                    X = 
+                    <input type="number" id="centerX" value=0 class="inner">
+                    Y = 
+                    <input type="number" id="centerY" value=0 class="inner">
+                    Width = 
+                    <input type="number" id="width" value=3>
+                </div>
+                <div id="picker"></div>
             </div>
         </div>
         <div id="right">

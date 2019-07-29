@@ -135,7 +135,7 @@ function updateTheta(event) {
         real = r*Math.cos(theta);
         reInput.value = real;
         imag = r*Math.sin(theta);
-        imInput.value = imag;
+        imInput.value = imag.toFixed(3);
         tracker.current.setState(
             {
                 mouse: {
@@ -215,10 +215,10 @@ function handleMouseChanged(data) {
     r = data.abs;
     theta = data.arg;
 
-    reInput.value = real;
-    imInput.value = imag;
-    rInput.value = r;
-    thetaInput.value = theta;
+    reInput.value = real.toFixed(4);
+    imInput.value = imag.toFixed(4);
+    rInput.value = r.toFixed(4);
+    thetaInput.value = theta.toFixed(4);
     run();
 }
 
@@ -226,12 +226,13 @@ makeNewPlotter(kInput.value);
 
 if (success) {
     render(<TrackerCartesianPlane
+           id={"tracker"}
            ref={tracker}
            onMouseMoved={handleMouseChanged}
            width={nplaneSize} height={nplaneSize}
            bounds={{
-               horizontal: intervalFromLenCen(2,0),
-               vertical: intervalFromLenCen(2,0),
+               horizontal: intervalFromLenCen(3,0),
+               vertical: intervalFromLenCen(3,0),
            }}/>, document.querySelector("#picker"));
     run(0.5, 0.5);
 }

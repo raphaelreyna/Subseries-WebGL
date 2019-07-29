@@ -33,7 +33,7 @@ body {
 
 #content {
     width: 100%;
-    height: 95%;
+    height: 100%;
     float: left;
     clear: both;
     position: relative;
@@ -56,13 +56,12 @@ body {
     margin: auto;
 }
 
-#cPlaneWrapper {
-    width: 100%;
-}
-
-#cPlane {
-    width: 100%;
-    background-color: #3f3f3f;
+#trackerWrapper {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
 }
 
 #formWrapper {
@@ -101,4 +100,22 @@ input::-webkit-inner-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
     /* Firefox */
+}
+
+#controls {
+    padding-left: 10px;
+    width: 100%;
+    height: 30%;
+    padding-top: 10px;
+    background-color: #3f3f3f;
+}
+
+#centerX {
+    width: 10%;
+}
+#centerY {
+    width: 10%;
+}
+#width {
+    width: 10%;
 }
