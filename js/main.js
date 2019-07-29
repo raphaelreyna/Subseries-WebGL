@@ -72,10 +72,10 @@ function toggleRotation() {
 function toggleLW() {
     if (app.lw === 0) {
         app.lw = 1;
-        lwButton.innerHTML = "Switch to subseries";
+        lwButton.innerHTML = "Subseries Mode";
     } else {
         app.lw = 0;
-        lwButton.innerHTML = "Switch to Littlewood (experimental)";
+        lwButton.innerHTML = "Littlewood (beta)";
     }
     if (!rotating){
         run();
