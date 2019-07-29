@@ -228,7 +228,7 @@ class App {
         // If so, we need to recompute the coefficients
         if (this.fString != fString) {
             this.fString = fString;
-            this.coeffs = getCoeffs(this.fString, this.k, false);
+            this.coeffs = getCoeffs(this.fString, this.k, true);
         }
         // Compute the sequence of powers for the given complex number.
         this.powers = getPowers(real, imag, this.k);
