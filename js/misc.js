@@ -11,6 +11,7 @@ function Nfetch(url, callback) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, Boolean(callback));
     xhr.send();
+    console.log(xhr.responseText);
     return JSON.parse(xhr.responseText);
 }
 
