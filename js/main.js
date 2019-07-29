@@ -27,13 +27,14 @@ const cYInput = document.getElementById('centerY');
 const widthInput = document.getElementById('width');
 const fxn = document.getElementById("fxn");
 const kInput = document.getElementById("k");
+const rotButton = document.getElementById('rotButton');
 var rotating = false;
 var lw = false;
 const lwButton = document.getElementById("lwButton");
 var success = true;
 var app = null;
 var f = "1/(1-x)";
-document.getElementById('rotButton').addEventListener("click", toggleRotation);
+rotButton.addEventListener("click", toggleRotation);
 cXInput.addEventListener("keyup", updateBounds);
 cYInput.addEventListener("keyup", updateBounds);
 widthInput.addEventListener("keyup", updateBounds);
@@ -62,6 +63,22 @@ function toggleRotation() {
     rotating = !rotating;
     if (rotating) {
         rotationLoop();
+        rotButton.innerHTML = "Stop"
+    } else {
+        rotButton.innerHTML = "Rotate"
+    }
+}
+
+function toggleLW() {
+    if (app.lw === 0) {
+        app.lw = 1;
+        lwButton.innerHTML = "Switch to subseries";
+    } else {
+        app.lw = 0;
+        lwButton.innerHTML = "Switch to Littlewood (experimental)";
+    }
+    if (!rotating){
+        run();
     }
 }
 
@@ -194,19 +211,6 @@ function rotationLoop() {
 function run() {
     app.setupForDrawLoop(f, real, imag);
     requestAnimationFrame(gldrawloop);
-}
-
-function toggleLW() {
-    if (app.lw === 0) {
-        app.lw = 1;
-        lwButton.innerHTML = "Switch to subseries";
-    } else {
-        app.lw = 0;
-        lwButton.innerHTML = "Switch to Littlewood (experimental)";
-    }
-    if (!rotating){
-        run();
-    }
 }
 
 function handleMouseChanged(data) {

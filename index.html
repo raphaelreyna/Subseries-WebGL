@@ -1,6 +1,12 @@
 <html>
 
 <head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
     <title>Subseries Plotter</title>
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -9,36 +15,59 @@
 <body>
     <div id="content">
         <div id="left" width="350px">
-            <div id="formWrapper">
-                    f(x) =
-                    <input type="text" id="fxn" value="1/(1-x)" class="inner">
-
-                    k =
-                    <input type="number" id="k" value="16">
-                    <br>
-
-                    Re(x) =
-                    <input type="number" step="any" id="real" value=0.5 class="inner">
-                    Im(x) =
-                    <input type="number" id="imag" value=0.5>
-                    <br>
-                    |x| =
-                    <input type="number" id="r" value=0.7071 class="inner">
-                    Arg(x) =
-                    <input type="number" id="theta" value=0.7853>
-                    <br>
-                    <button id="rotButton">Toggle Rotation</button>
-                    <button id="lwButton">Littlewood (experimental)</button>
+            <div id="navbar">Subseries Plotter</div>
+            <div class="row">
+                <div class="col s6">
+                    <label class="active" for="fxn">f(x)=</label>
+                    <input value="1/(1-x)" type="text" id="fxn">
+                </div>
+                <div class="col s6">
+                    <label class="active" for="k">k=</label>
+                    <input value=16 type="number" id="k">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6">
+                    <label class="active" for="real">Re(x)=</label>
+                    <input value=0.5 type="number" id="real">
+                </div>
+                <div class="col s6">
+                    <label class="active" for="imag">Im(x)=</label>
+                    <input value=0.5 type="number" id="imag">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6">
+                    <label class="active" for="r">|x|=</label>
+                    <input value=0.7071 type="number" id="r">
+                </div>
+                <div class="col s6">
+                    <label class="active" for="theta">Arg(x)=</label>
+                    <input value=0.7853 type="number" id="theta">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s4">
+                    <a id="rotButton" class="btn-flat">Rotate</a>
+                </div>
+                <div class="col s8">
+                    <a id="lwButton" class="btn-flat">Littlewood Mode</a>
+                </div>
             </div>
             <div id="trackerWrapper">
-                <div id="controls">
-                    <h4>Recenter</h4>
-                    X = 
-                    <input type="number" id="centerX" value=0 class="inner">
-                    Y = 
-                    <input type="number" id="centerY" value=0 class="inner">
-                    Width = 
-                    <input type="number" id="width" value=3>
+                <div class="row">
+                    <div class="col s4">
+                        <label class="active" for="centerX">Center x: </label>
+                        <input value=0 type="number" id="centerX">
+                    </div>
+                    <div class="col s4">
+                        <label class="active" for="centerY">Center y: </label>
+                        <input value=0 type="number" id="centerY">
+                    </div>
+                    <div class="col s4">
+                        <label class="active" for="width">Width: </label>
+                        <input value=3 type="number" id="width">
+                    </div>
                 </div>
                 <div id="picker"></div>
             </div>
