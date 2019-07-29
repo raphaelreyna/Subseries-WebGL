@@ -64,7 +64,7 @@ function getCoeffs(fString, k, remote) {
     var coeffsList = [];
 
     if (remote === true) {
-        var url = "http://192.168.0.153/?fxn=" + encodeURIComponent(fString);
+        var url = "http://54.219.71.48/?fxn=" + encodeURIComponent(fString);
         url = url+"&deg="+k.toString();
         coeffsList = Nfetch(url);
     } else {
