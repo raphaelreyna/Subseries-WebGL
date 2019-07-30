@@ -228,7 +228,7 @@ class App {
         // If so, we need to recompute the coefficients
         if (this.fString != fString) {
             this.fString = fString;
-            this.coeffs = getCoeffs(this.fString, this.k, true);
+            this.coeffs = getCoeffs(this.fString, this.k, false);
             if (this.coeffs === null) {
                 alert("Could not connect to backend server on Heroku.\n It was probably asleep and is now spinning back up.\n Please try reloading the page.");
             }
