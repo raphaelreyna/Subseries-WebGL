@@ -10,6 +10,12 @@
     <title>Subseries Plotter</title>
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+      </script>
+    <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
 </head>
 
 <body>
@@ -18,31 +24,31 @@
             <div id="navbar">Subseries Plotter</div>
             <div class="row">
                 <div class="col s6">
-                    <label class="active" for="fxn">f(x)=</label>
+                    <label class="active" for="fxn">\(f(x)=\)</label>
                     <input value="1/(1-x)" type="text" id="fxn">
                 </div>
                 <div class="col s6">
-                    <label class="active" for="k">k=</label>
+                    <label class="active" for="k">\(k\)=</label>
                     <input value=16 type="number" id="k">
                 </div>
             </div>
             <div class="row">
                 <div class="col s6">
-                    <label class="active" for="real">Re(x)=</label>
+                    <label class="active" for="real">Re\((x)=\)</label>
                     <input value=0.5 type="number" id="real">
                 </div>
                 <div class="col s6">
-                    <label class="active" for="imag">Im(x)=</label>
+                    <label class="active" for="imag">Im\((x)=\)</label>
                     <input value=0.5 type="number" id="imag">
                 </div>
             </div>
             <div class="row">
                 <div class="col s6">
-                    <label class="active" for="r">|x|=</label>
+                    <label class="active" for="r">\(|x|=\)</label>
                     <input value=0.7071 type="number" id="r">
                 </div>
                 <div class="col s6">
-                    <label class="active" for="theta">Arg(x)=</label>
+                    <label class="active" for="theta">Arg(\(x)=\)</label>
                     <input value=0.7853 type="number" id="theta">
                 </div>
             </div>
