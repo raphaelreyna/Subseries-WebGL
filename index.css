@@ -137,7 +137,9 @@ input[type=number] {
     /* Firefox */
 }
 
-@media only screen and (max-width: 769px) {
+@media only screen 
+and (min-device-width : 375px) 
+and (max-device-width : 667px) {
     #pickerWrapper { 
       display: none;
     }
@@ -149,4 +151,22 @@ input[type=number] {
     #navbar {
         width: 103%;
     }
+
+    .small-int-input {
+        width: 2.5em;
+    }
   }
+
+@media only screen and (max-width: 600px) {
+    #pickerWrapper { 
+        display: none;
+      }
+  
+      #pickerControls {
+          display: none;
+      }
+  
+      #navbar {
+          width: 103%;
+      }
+}

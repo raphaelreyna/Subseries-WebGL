@@ -2,7 +2,6 @@ import React from 'react';
 import {render} from 'react-dom';
 import {TrackerCartesianPlane, intervalFromLenCen} from '@rreyna/react-tracker-canvas';
 
-
 const winHeight = window.innerHeight;
 const winWidth = window.innerWidth;
 const winDiameter = Math.max(winHeight, winWidth);
@@ -100,7 +99,7 @@ function updateReal(event) {
             theta = theta+2*Math.PI;
         }
         thetaInput.value = theta;
-        if (window.innerWidth >= 769) {
+        if (window.innerWidth >= 668) {
             tracker.current.setState(
                 {
                     mouse: {
@@ -122,7 +121,7 @@ function updateImag(event) {
             theta = theta+2*Math.PI;
         }
         thetaInput.value = theta;
-        if (window.innerWidth >= 769) {
+        if (window.innerWidth >= 668) {
             tracker.current.setState(
                 {
                     mouse: {
@@ -141,7 +140,7 @@ function updateMagnitude(event){
         reInput.value = real;
         imag = r*Math.sin(theta);
         imInput.value = imag;
-        if (window.innerWidth >= 769) {
+        if (window.innerWidth >= 668) {
             tracker.current.setState(
                 {
                     mouse: {
@@ -159,7 +158,7 @@ function updateTheta(event) {
         reInput.value = real;
         imag = r*Math.sin(theta);
         imInput.value = imag.toFixed(3);
-        if (window.innerWidth >= 769) {
+        if (window.innerWidth >= 668) {
             tracker.current.setState(
                 {
                     mouse: {
@@ -176,7 +175,7 @@ function updateBounds(event) {
     const cx = parseFloat(cXInput.value);
     const cy = parseFloat(cYInput.value);
     const w = parseFloat(widthInput.value);
-    if (event.keyCode === 13 && !isNaN(cx) && !isNaN(cy) && !isNaN(w) && window.innerWidth >= 769) {
+    if (event.keyCode === 13 && !isNaN(cx) && !isNaN(cy) && !isNaN(w) && window.innerWidth >= 668) {
         tracker.current.setState({
             bounds: {
                 horizontal: intervalFromLenCen(w, cx),
