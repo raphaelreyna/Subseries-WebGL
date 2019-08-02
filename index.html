@@ -1,88 +1,75 @@
 <html>
 
 <head>
-    <!-- Compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-
-    <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
-    <title>Subseries Plotter</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
       </script>
     <script type="text/javascript" async
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <title>Subseries Plotter</title>
 </script>
 </head>
 
 <body>
+	<div id="navbar">
+		<span id="nav-title">Subseries Plotter</span>
+		<a id="help" href="#"><i class="material-icons">help</i></a>
+	</div>
     <div id="content">
-        <div id="left" width="350px">
-            <div id="navbar">Subseries Plotter</div>
-            <div class="row">
-                <div class="col s6">
-                    <label class="active" for="fxn">\(f(x)=\)</label>
-                    <input value="1/(1-x)" type="text" id="fxn">
-                </div>
-                <div class="col s6">
-                    <label class="active" for="k">\(k\)=</label>
-                    <input value=16 type="number" id="k">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s6">
-                    <label class="active" for="real">Re\((x)=\)</label>
-                    <input value=0.5 type="number" id="real">
-                </div>
-                <div class="col s6">
-                    <label class="active" for="imag">Im\((x)=\)</label>
-                    <input value=0.5 type="number" id="imag">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s6">
-                    <label class="active" for="r">\(|x|=\)</label>
-                    <input value=0.7071 type="number" id="r">
-                </div>
-                <div class="col s6">
-                    <label class="active" for="theta">Arg(\(x)=\)</label>
-                    <input value=0.7853 type="number" id="theta">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s4">
-                    <a id="rotButton" class="btn-flat">Rotate</a>
-                </div>
-                <div class="col s8">
-                    <a id="lwButton" class="btn-flat">Littlewood (beta)</a>
-                </div>
-            </div>
-            <div id="trackerWrapper">
-                <div class="row">
-                    <div class="col s4">
-                        <label class="active" for="centerX">Center x: </label>
-                        <input value=0 type="number" id="centerX">
-                    </div>
-                    <div class="col s4">
-                        <label class="active" for="centerY">Center y: </label>
-                        <input value=0 type="number" id="centerY">
-                    </div>
-                    <div class="col s4">
-                        <label class="active" for="width">Width: </label>
-                        <input value=3 type="number" id="width">
-                    </div>
-                </div>
-                <div id="picker"></div>
-            </div>
-        </div>
-        <div id="right">
-            <canvas id="glCanvas">
-                Your browser does not support HTML5
-            </canvas>
-        </div>
+		<div id="left">
+			<div id="form">
+				<div class="labeled-input">
+					\(f(x) = \) 
+					<input value="1/(1-x)" type="text" id="fxn" style="width: 7em;">
+				</div>
+				<div class="labeled-input">
+					\(k = \)
+					<input value=16 type="number" id="k" class="small-int-input">
+				</div>
+				<div class="labeled-input">
+					Re\((x)=\)
+					<input value=0.5 type="number" id="real" class="coordinate-input">
+				</div>
+				<div class="labeled-input">
+					Im\((x)=\)
+					<input value=0.5 type="number" id="imag" class="coordinate-input">
+				</div>
+				<div class="labeled-input">
+					\(|x|=\)
+					<input value=0.7071 type="number" id="r" class="coordinate-input">
+				</div>
+				<div class="labeled-input">
+					Arg(\(x)=\)
+					<input value=0.7853 type="number" id="theta" class="coordinate-input">
+				</div>
+			</div>
+			<div class="toggles">
+				Rotation: <input id="rotButton" type="checkbox">
+			</div>
+			<div id="pickerControls">
+				<div>
+					Width: <input value=3 type="number" id="width" class="coordinate-input-small">
+				</div>
+				<div>
+					Center x: <input value=0 type="number" id="centerX" class="coordinate-input">
+				</div>
+				<div>
+					Center y: <input value=0 type="number" id="centerY" class="coordinate-input">
+				</div>
+			</div>
+			<div id="pickerWrapper">
+				<div id="picker"></div>
+			</div>
+		</div>
+		<div id="glCanvas-wrapper">
+		<canvas id="glCanvas">
+			Your browser does not support HTML5
+		</canvas>
+		</div>
     </div>
 
 </body>

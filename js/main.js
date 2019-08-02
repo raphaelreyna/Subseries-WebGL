@@ -2,6 +2,7 @@ import React from 'react';
 import {render} from 'react-dom';
 import {TrackerCartesianPlane, intervalFromLenCen} from '@rreyna/react-tracker-canvas';
 
+
 const winHeight = window.innerHeight;
 const winWidth = window.innerWidth;
 const winDiameter = Math.max(winHeight, winWidth);
@@ -28,9 +29,9 @@ const widthInput = document.getElementById('width');
 const fxn = document.getElementById("fxn");
 const kInput = document.getElementById("k");
 const rotButton = document.getElementById('rotButton');
+const help = document.getElementById('help');
 var rotating = false;
 var lw = false;
-const lwButton = document.getElementById("lwButton");
 var success = true;
 var app = null;
 var f = "1/(1-x)";
@@ -43,9 +44,8 @@ imInput.addEventListener("keyup", updateImag);
 rInput.addEventListener("keyup", updateMagnitude);
 thetaInput.addEventListener("keyup", updateTheta);
 fxn.addEventListener("keyup", updateFxn);
-lwButton.addEventListener("click", toggleLW);
 kInput.addEventListener("keyup", updateK);
-
+help.addEventListener("click", ()=>{alert("Coming soon!")});
 
 var tracker = React.createRef();
 
@@ -100,12 +100,14 @@ function updateReal(event) {
             theta = theta+2*Math.PI;
         }
         thetaInput.value = theta;
-        tracker.current.setState(
-            {
-                mouse: {
-                    x: real, y: imag
-                }
-            });
+        if (window.innerWidth >= 769) {
+            tracker.current.setState(
+                {
+                    mouse: {
+                        x: real, y: imag
+                    }
+                });
+        }
     }
 }
 
@@ -120,12 +122,14 @@ function updateImag(event) {
             theta = theta+2*Math.PI;
         }
         thetaInput.value = theta;
-        tracker.current.setState(
-            {
-                mouse: {
-                    x: real, y: imag
-                }
-            });
+        if (window.innerWidth >= 769) {
+            tracker.current.setState(
+                {
+                    mouse: {
+                        x: real, y: imag
+                    }
+                });
+        }
     }
 }
 
@@ -137,12 +141,14 @@ function updateMagnitude(event){
         reInput.value = real;
         imag = r*Math.sin(theta);
         imInput.value = imag;
-        tracker.current.setState(
-            {
-                mouse: {
-                    x: real, y: imag
-                }
-            });
+        if (window.innerWidth >= 769) {
+            tracker.current.setState(
+                {
+                    mouse: {
+                        x: real, y: imag
+                    }
+                });
+        }
     }
 }
 
@@ -153,12 +159,16 @@ function updateTheta(event) {
         reInput.value = real;
         imag = r*Math.sin(theta);
         imInput.value = imag.toFixed(3);
-        tracker.current.setState(
-            {
-                mouse: {
-                    x: real, y: imag
-                }
-            });
+        if (window.innerWidth >= 769) {
+            tracker.current.setState(
+                {
+                    mouse: {
+                        x: real, y: imag
+                    }
+                });
+        } else {
+            run();
+        }
     }
 }
 
@@ -166,7 +176,7 @@ function updateBounds(event) {
     const cx = parseFloat(cXInput.value);
     const cy = parseFloat(cYInput.value);
     const w = parseFloat(widthInput.value);
-    if (event.keyCode === 13 && !isNaN(cx) && !isNaN(cy) && !isNaN(w)) {
+    if (event.keyCode === 13 && !isNaN(cx) && !isNaN(cy) && !isNaN(w) && window.innerWidth >= 769) {
         tracker.current.setState({
             bounds: {
                 horizontal: intervalFromLenCen(w, cx),
@@ -199,10 +209,6 @@ function rotationLoop() {
     thetaInput.value = currentTheta+0.001;
     updateTheta({keyCode: 13});
     const fString = fxn.value;
-    const mouse = {
-        x: real, y: imag
-    };
-    tracker.current.setState({mouse});
     if (rotating){
         window.requestAnimationFrame(rotationLoop);
     }
