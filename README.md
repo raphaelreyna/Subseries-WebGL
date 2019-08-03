@@ -11,11 +11,8 @@ a subseries of S is any series S'= b<sub>0</sub>+b<sub>1</sub>+b<sub>2</sub>+...
 
 A well known subseries of the [harmonic series](https://en.wikipedia.org/wiki/Harmonic_series_(mathematics)) is the [Kempner series](https://en.wikipedia.org/wiki/Kempner_series).
 
-### Backend
-The [backend](https://github.com/raphaelreyna/sympy-api) handles all of the symbolic math. 
-
 ### Acknowledements
 General technique of how to use WebGL for more general computing is based on this [excellent blog post by Chris Wellons](https://nullprogram.com/blog/2014/06/10/).
 
 
-Taylor series expansion is normally handled by a python backend I wrote using [Sympy](https://www.sympy.org/en/index.html). However, sometimes this backend server is unavailable, and when this happens, the Taylor series are computed using the [math-expressions](https://github.com/kisonecat/math-expressions) by kisonecat.
+Taylor series expansion is normally handled by a python [backend](https://github.com/raphaelreyna/sympy-api) I wrote using [Sympy](https://www.sympy.org/en/index.html). However, sometimes this backend server is unavailable, and when this happens, the Taylor series are computed using the [math-expressions](https://github.com/kisonecat/math-expressions) by kisonecat.
