@@ -31,6 +31,7 @@ const rotButton = document.getElementById('rotButton');
 const help = document.getElementById('help');
 const modal = document.getElementById('modal');
 const close = document.getElementById('closeModal');
+const pulseIcon = document.getElementById('pulseIcon');
 var rotating = false;
 var lw = false;
 var success = true;
@@ -69,6 +70,7 @@ function toggleModal(event) {
     } else {
         modal.classList.remove('hidden');
     }
+    pulseIcon.classList.remove('pulse');
 }
 
 function toggleRotation() {
