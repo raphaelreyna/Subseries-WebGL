@@ -20,6 +20,19 @@
 		<span id="nav-title">Subseries Plotter</span>
 		<a id="help" href="#"><i class="material-icons">help</i></a>
 	</div>
+    <div class="modal hidden" id="modal">
+        <div class="modal-content">
+            <h3>F.A.Q.</h3>
+            <ul>
+                <li><h4>What am I looking at?</h4> All subseries of $f$, truncated at the $k^{th}$ degree term, evaluated at some $x \in \mathbb{C}$. Each point on the screen is a different subseries of $f$ evaluated at the chosen point $x$. Taylor expansion of $f$ is about the origin. See below for colors.</li>
+                <li><h4>What are subseries?</h4> Let $A=\sum \alpha_i$, and $B=\sum \beta_j$ be series. Then $B$ is said to be a subseries of $A$ if and only if $\beta_i = \alpha_i$ or $\beta_i = 0$. <br/><br/>This definition is extended to include subseries of <a href="https://en.wikipedia.org/wiki/Analytic_function">analytic functions</a> by considering the subseries of the <a href="https://en.wikipedia.org/wiki/Taylor_series">Taylor series</a> of the function about some point.
+                    <li><h4>What do the colors represent?</h4> Subseries which had more points dropped will be bluer, and those with less points dropped will be redder.</li>
+                    <li><h4>What's this written in?</h4> The actual construction and evaluation of the subseries occurs in parallel on the GPU and is written in Javascript using <a href="https://www.khronos.org/webgl/">WebGL</a>. Symbolic math, in particular computing the Taylor series, is handled by a backend server using <a href="https://www.sympy.org/en/index.html">Sympy</a>. Math typesetting is done using <a href="https://www.mathjax.org">MathJax</a>.
+                        <li><h4>Where can I look at the source code?</h4> On <a href="https://github.com/raphaelreyna/Subseries-WebGL">Github</a>.
+            </ul>
+            <button id="closeModal">Close</button>
+        </div>
+    </div>
     <div id="content">
 		<div id="left">
 			<div id="form">
@@ -67,11 +80,11 @@
 			</div>
 		</div>
 		<div id="glCanvas-wrapper">
-		<canvas id="glCanvas">
-			Your browser does not support HTML5
-		</canvas>
+      <canvas id="glCanvas">
+        Your browser does not support HTML5
+      </canvas>
 		</div>
-    </div>
+  </div>
 
 </body>
 <footer>

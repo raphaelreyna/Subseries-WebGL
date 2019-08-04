@@ -10,6 +10,42 @@ body {
 
 #help {
     float: right;
+    color: white;
+    top: 50%;
+    -webkit-transform: translate(-50%, 25%);
+    transform: translate(-50%, 25%);
+}
+
+.modal {
+    background: rgba(255,255,255,0.5);
+    color: black;
+    position: absolute;
+    z-index: 10;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 70%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    overflow-y: scroll;
+}
+
+.hidden {
+    display: none;
+}
+
+#closeModal {
+    background-color: #191919; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 17px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    float: right;
+    margin-right: 2em;
 }
 
 #navbar {
@@ -65,6 +101,7 @@ body {
     margin: auto;
 }
 
+
 #pickerControls {
     display: flex;
     justify-content: flex-end;
@@ -83,6 +120,7 @@ body {
     bottom: 0;
     position: absolute;
     background-color: #747474;
+    box-shadow: inset -2px 2px 5px #000;
 }
 
 #form {

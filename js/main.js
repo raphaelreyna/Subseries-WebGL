@@ -29,6 +29,8 @@ const fxn = document.getElementById("fxn");
 const kInput = document.getElementById("k");
 const rotButton = document.getElementById('rotButton');
 const help = document.getElementById('help');
+const modal = document.getElementById('modal');
+const close = document.getElementById('closeModal');
 var rotating = false;
 var lw = false;
 var success = true;
@@ -44,7 +46,9 @@ rInput.addEventListener("keyup", updateMagnitude);
 thetaInput.addEventListener("keyup", updateTheta);
 fxn.addEventListener("keyup", updateFxn);
 kInput.addEventListener("keyup", updateK);
-help.addEventListener("click", ()=>{alert("Coming soon!")});
+help.addEventListener("click", toggleModal);
+close.addEventListener("click", toggleModal);
+var modalHidden = true;
 
 var tracker = React.createRef();
 
@@ -55,6 +59,15 @@ function makeNewPlotter(degree) {
         glCanvas.innerHTML = err.message;
         alert(err.message);
         success = false;
+    }
+}
+
+function toggleModal(event) {
+    modalHidden = !modalHidden;
+    if (modalHidden) {
+        modal.classList.add('hidden');
+    } else {
+        modal.classList.remove('hidden');
     }
 }
 
