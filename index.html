@@ -21,13 +21,14 @@
 		<a id="help" href="#"><i class="material-icons pulse" id="pulseIcon">help</i></a>
 	</div>
     <div class="modal hidden" id="modal">
+        <h2 class="faqHeader">F.A.Q.</h2>
         <div class="modal-content">
-            <h3>F.A.Q.</h3>
             <ul>
-                <li><h4>What am I looking at?</h4> All subseries of $f$, truncated at the $k^{th}$ degree term, evaluated at some $x \in \mathbb{C}$. Each point on the screen is a different subseries of $f$ evaluated at the chosen point $x$. Taylor expansion of $f$ is about the origin. See below for colors.</li>
+                <li><h4>What am I looking at?</h4> All subseries of $f$, truncated at the $k^{th}$ degree term, evaluated at some $x \in \mathbb{C}$. Each point on the screen is a different subseries of $f$ evaluated at the chosen point $x$. The image of the evaluations of all subseries is normalized so at to keep it centered on the screen. Taylor expansion of $f$ is about the origin. See below for colors.</li>
                 <li><h4>What are subseries?</h4> Let $A=\sum \alpha_i$, and $B=\sum \beta_j$ be series. Then $B$ is said to be a subseries of $A$ if and only if $\beta_i = \alpha_i$ or $\beta_i = 0$. <br/><br/>This definition is extended to include subseries of <a href="https://en.wikipedia.org/wiki/Analytic_function">analytic functions</a> by considering the subseries of the <a href="https://en.wikipedia.org/wiki/Taylor_series">Taylor series</a> of the function about some point.
                     <li><h4>What do the colors represent?</h4> Subseries which had more points dropped will be bluer, and those with less points dropped will be redder.</li>
-                    <li><h4>What's this written in?</h4> The actual construction and evaluation of the subseries occurs in parallel on the GPU and is written in Javascript using <a href="https://www.khronos.org/webgl/">WebGL</a>. Symbolic math, in particular computing the Taylor series, is handled by a backend server using <a href="https://www.sympy.org/en/index.html">Sympy</a>. Math typesetting is done using <a href="https://www.mathjax.org">MathJax</a>.
+                    <li><h4>How do I use this?</h4> Enter your favorite analytic function, (use exp(x) for the exponential function $e^x$. Exponents are entered using **: e.g. x**2 for $x^2$. See the <a href="https://docs.sympy.org/latest/_modules/sympy/parsing/sympy_parser.html">Sympy documentation on parsing</a> for more info on this.) Afterwards, type in a complex number in either polar or cartesian form. If you are on a desktop browser, use the complex number picker on the bottom left to choose a value for $x$. Turn on the "rotation" option to animate $x$ orbiting the origin at its current radius.
+                        <li><h4>What's this written in?</h4> The actual construction and evaluation of the subseries occurs in parallel on the GPU and is written in Javascript using <a href="https://www.khronos.org/webgl/">WebGL</a>. Symbolic math, in particular computing the Taylor series, is handled by a backend server using <a href="https://www.sympy.org/en/index.html">Sympy</a>. Math typesetting is done using <a href="https://www.mathjax.org">MathJax</a>.
                         <li><h4>Where can I look at the source code?</h4> On <a href="https://github.com/raphaelreyna/Subseries-WebGL">Github</a>.
             </ul>
             <button id="closeModal">Close</button>
