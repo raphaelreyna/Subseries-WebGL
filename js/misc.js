@@ -65,7 +65,7 @@ function getCoeffs(fString, k, remote) {
     var coeffsList = [];
 
     if (remote === true) {
-        var url = "https://taylor-series.herokuapp.com/?fxn=" + encodeURIComponent(fString);
+        var url = "https://raphaelreyna.works/api/sympy-api/?fxn=" + encodeURIComponent(fString);
         url = url+"&deg="+k.toString();
         coeffsList = Nfetch(url);
     } else {
