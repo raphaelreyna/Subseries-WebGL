@@ -8,9 +8,9 @@
     "build": "export BABEL_ENV='production' && webpack --mode production && unset BABEL_ENV"
   },
   "dependencies": {
+    "@rreyna/react-tracker-canvas": "^1.6.2",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "@rreyna/react-tracker-canvas": "^1.6.2"
+    "react-dom": "^16.8.6"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

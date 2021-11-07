@@ -260,8 +260,3 @@ if (success) {
            }}/>, document.querySelector("#picker"));
     run(0.5, 0.5);
 }
-
-function handleCoeffs(data) {
-    console.log(this.responseText);
-}
-

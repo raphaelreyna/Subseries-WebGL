@@ -1,4 +1,12 @@
 const BASE = 255;
+const graphURL = `https://graph.rphlrn.com`;
+const expandQuery = `
+query expand($function: String!, $degree: Int!) {
+  taylor(function: $function, degree: $degree) {
+    coefficients
+  }
+}
+`;
 
 function fetch(url, callback) {
     const xhr = new XMLHttpRequest();
@@ -7,11 +15,20 @@ function fetch(url, callback) {
     return xhr.responseText;
 }
 
-function Nfetch(url, callback) {
+function Nfetch(fn, d, callback) {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, Boolean(callback));
-    xhr.send();
-    console.log(xhr.responseText);
+    xhr.open('POST', graphURL, Boolean(callback));
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+    const payload = {
+        query: expandQuery,
+        variables: {
+            function: fn,
+            degree: d
+        },
+    };
+
+    xhr.send(JSON.stringify(payload));
     return JSON.parse(xhr.responseText);
 }
 
@@ -65,9 +82,7 @@ function getCoeffs(fString, k, remote) {
     var coeffsList = [];
 
     if (remote === true) {
-        var url = "https://raphaelreyna.works/api/sympy-api/?fxn=" + encodeURIComponent(fString);
-        url = url+"&deg="+k.toString();
-        coeffsList = Nfetch(url);
+        coeffsList = Nfetch(fString, k).data.taylor.coefficients;
     } else {
         var counter = 1;
         var factorial = 1;
@@ -84,6 +99,7 @@ function getCoeffs(fString, k, remote) {
             coeffsList.push(coeff);
         }
     }
+
     return coeffsList;
 }
 
