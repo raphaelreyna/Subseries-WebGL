@@ -70,17 +70,17 @@ class App {
         // Create the programs from their shaders' paths.
         this.programs = {
             draw: createProgram(gl,
-                                'glsl/draw.vert',
-                                'glsl/draw.frag'),
+                                'Subseries-WebGL/glsl/draw.vert',
+                                'Subseries-WebGL/glsl/draw.frag'),
             updateSwitches: createProgram(gl,
-                                          'glsl/update.vert',
-                                          'glsl/updateSwitches.frag'),
+                                          'Subseries-WebGL/glsl/update.vert',
+                                          'Subseries-WebGL/glsl/updateSwitches.frag'),
             updatePoints: createProgram(gl,
-                                        'glsl/update.vert',
-                                        'glsl/updatePoints.frag'),
+                                        'Subseries-WebGL/glsl/update.vert',
+                                        'Subseries-WebGL/glsl/updatePoints.frag'),
             resetPoints: createProgram(gl,
-                                       'glsl/update.vert',
-                                       'glsl/resetPoints.glsl')};
+                                       'Subseries-WebGL/glsl/update.vert',
+                                       'Subseries-WebGL/glsl/resetPoints.glsl')};
 
         // Initialize the buffers and send their data over to the GPU.
         this.buffers = {
