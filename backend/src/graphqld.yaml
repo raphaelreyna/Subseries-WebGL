@@ -1,0 +1,48 @@
+# hostname is ignored if serving multiple graphs;
+# each graphs serverName will be used instead.
+#
+# Default: ""
+hostname: ""
+
+# address is the address:port that graphqld will bind to.
+#
+# Default: 80
+address: ":8080"
+
+# root is the dir where graphqld will look for its graph(s)
+# Single graph: the root dir should contain a dir name Query or Mutation or both
+# Multiple graphs: each graph in its own dir with that graphs servername / hostname as the dir name.
+#
+# Default: "."
+root: "/graphqld"
+
+# hot enables global hot reloading; this can be overriden 
+# by each graph config in the graphs section.
+#
+# Default: false
+hot: false
+
+# graphiql enables a graphiql server for each graph at "/graphiql"; this can be overriden
+# by each graph config in the graphs section.
+#
+# Default: false
+graphiql: false
+
+# resolverWD is the default working directory for resolvers; this can be overriden
+# by each graph config in the graphs section.
+#
+# Default: "/"
+resolverWD: "."
+
+cors:
+  allowCredentials: true
+  allowedHeaders:
+    - "Host"
+  allowedOrigins:
+    - "rphlrn.com"
+    - "www.rphlrn.com"
+  ignoreOptions: false
+
+log:
+  json: true
+  level: "info"
