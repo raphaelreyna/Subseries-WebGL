@@ -1,5 +1,5 @@
 const BASE = 255;
-const graphURL = `https://graph.rphlrn.com`;
+const graphURL = `https://www.rphlrn.com/sympy-graph`;
 const expandQuery = `
 query expand($function: String!, $degree: Int!) {
   taylor(function: $function, degree: $degree) {
