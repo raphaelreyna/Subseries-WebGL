@@ -40,13 +40,15 @@ function compileShader(gl, type, source) {
     return shader;
 }
 
-function createProgram(gl, vertexShaderPath, fragmentShaderPath) {
+function createProgram(gl, vertexShader, fragmentShader) {
+    console.log('compiling vertex shader', vertexShader);
     const vShader = compileShader(gl,
                                   gl.VERTEX_SHADER,
-                                  fetch(vertexShaderPath));
+                                  vertexShader);
+    console.log('compiling fragment shader', fragmentShader);
     const fShader = compileShader(gl,
                                   gl.FRAGMENT_SHADER,
-                                  fetch(fragmentShaderPath));
+                                  fragmentShader);
     var program = gl.createProgram();
 	  gl.attachShader(program, vShader);
 	  gl.attachShader(program, fShader);

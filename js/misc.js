@@ -8,28 +8,16 @@ query expand($function: String!, $degree: Int!) {
 }
 `;
 
-function fetch(url, callback) {
+async function Nfetch(fn, d) {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, Boolean(callback));
-    xhr.send();
-    return xhr.responseText;
-}
-
-function Nfetch(fn, d, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', graphURL, Boolean(callback));
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-
-    const payload = {
-        query: expandQuery,
-        variables: {
-            function: fn,
-            degree: d
+    const payload = `{ taylor(function: "${fn}", degree: ${d}) { coefficients } }`
+    const resp = await fetch(graphURL + `?query=${encodeURIComponent(payload)}`,
+        {
+            method: 'GET',
+            headers: {'Accept': 'application/json'}
         },
-    };
-
-    xhr.send(JSON.stringify(payload));
-    return JSON.parse(xhr.responseText);
+    ).then(response => response.json())
+    return resp;
 }
 
 function complexMult(a, b) {
@@ -77,12 +65,12 @@ function encodePoint(re, im, scale, offset) {
     return encodedPoint;
 }
 
-function getCoeffs(fString, k, remote) {
+async function getCoeffs(fString, k, remote) {
     const zero = {x:0};
     var coeffsList = [];
 
     if (remote === true) {
-        coeffsList = Nfetch(fString, k).data.taylor.coefficients;
+        coeffsList = (await Nfetch(fString, k)).data.taylor.coefficients;
     } else {
         var counter = 1;
         var factorial = 1;

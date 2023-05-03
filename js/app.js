@@ -1,3 +1,216 @@
+const SHADER_DRAW_FRAG = `precision highp float;
+
+varying float counter;
+
+const float BASE = 255.0;
+
+vec3 rgb2hsv(vec3 c)
+{
+  vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+  float d = q.x - min(q.w, q.y);
+  float e = 1.0e-10;
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c)
+{
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float decode(vec4 data) {
+  float value = data.x;
+  value += data.y*BASE;
+  value += data.z*BASE*BASE;
+  value += data.w*BASE*BASE*BASE;
+  return floor(value*BASE);
+}
+void main() {
+  float c = (BASE/12.0)*counter;
+  gl_FragColor = vec4(1.0 - c, 0.0, c, 1.0);
+}
+`
+
+const SHADER_DRAW_VERT = `precision highp float;
+
+attribute vec2 index;
+
+uniform sampler2D points;
+uniform sampler2D switches;
+
+uniform vec2 statesize;
+uniform vec2 offset;
+uniform vec2 translation;
+uniform float windowsize;
+
+const float POINT_SIZE = 1.0;
+const float BASE = 255.0;
+const vec2 DECODER = vec2(BASE, BASE*BASE);
+
+varying float counter;
+
+vec2 decodePoint(vec4 data) {
+  vec2 reData = data.xy;
+  vec2 imData = data.zw;
+  float scale = BASE*BASE/windowsize;
+  float re = (dot(DECODER, reData)/scale)+offset.x;
+  float im = (dot(DECODER, imData)/scale)+offset.y;
+  return vec2(re, im);
+}
+
+void main() {
+  vec4 pointData = texture2D(points, index / statesize);
+  counter = texture2D(switches, index / statesize).w;
+  vec2 point = decodePoint(pointData);
+  gl_Position = vec4(2.0*(point+translation)/windowsize, 0, 1);
+  gl_PointSize = POINT_SIZE;
+}
+`
+
+const SHADER_RESET_POINTS_GLSL = `precision highp float;
+precision mediump int;
+
+uniform vec2 offset;
+uniform float windowsize;
+
+const float BASE = 256.0;
+const vec2 DECODER = vec2(BASE, BASE*BASE);
+
+vec4 encodePoint(vec2 point) {
+  vec2 scale = vec2(BASE*BASE/windowsize,BASE*BASE/windowsize);
+  vec2 normalizedPoint = scale*(point-offset);
+  return vec4(mod(normalizedPoint.x, BASE),
+              floor(normalizedPoint.x / BASE),
+              mod(normalizedPoint.y, BASE),
+              floor(normalizedPoint.y / BASE))/BASE;
+}
+
+void main() {
+  gl_FragColor = encodePoint(vec2(0.0,0.0));
+}
+`
+
+const SHADER_UPDATE_VERT = `precision highp float;
+
+attribute vec2 quad;
+varying vec2 index;
+
+void main()
+{
+  index = (quad + 1.0) / 2.0;
+  gl_Position = vec4(quad, 0.0, 1.0);
+}
+`
+
+const SHADER_UPDATE_POINTS_FRAG = `precision highp float;
+precision mediump int;
+
+varying vec2 index;
+
+uniform sampler2D points;
+uniform sampler2D switches;
+uniform vec2 newTerm;
+uniform vec2 offset;
+uniform float windowsize;
+uniform int lw;
+
+const float BASE = 255.0;
+const vec2 DECODER = vec2(BASE, BASE*BASE);
+
+float decodeSwitch(vec4 data) {
+  float value = data[0]*BASE;
+  value += data[1]*BASE*BASE;
+  value += data[2]*BASE*BASE*BASE;
+  return floor(value);
+}
+
+float getSwitchFromCode(float code) {
+  return mod(code, 2.0);
+}
+
+vec4 encodePoint(vec2 point) {
+  vec2 scale = vec2(BASE*BASE/windowsize,BASE*BASE/windowsize);
+  vec2 normalizedPoint = scale*(point-offset);
+  return vec4(mod(normalizedPoint.x, BASE),
+              floor(normalizedPoint.x / BASE),
+              mod(normalizedPoint.y, BASE),
+              floor(normalizedPoint.y / BASE))/BASE;
+}
+
+vec2 decodePoint(vec4 data) {
+  vec2 reData = data.xy;
+  vec2 imData = data.zw;
+  float scale = BASE*BASE/windowsize;
+  float re = (dot(DECODER, reData)/scale)+offset.x;
+  float im = (dot(DECODER, imData)/scale)+offset.y;
+  return vec2(re, im);
+}
+
+void main() {
+  vec4 pointData = texture2D(points, index);
+  vec4 switchData = texture2D(switches, index);
+  vec2 p = decodePoint(pointData);
+  float s = decodeSwitch(switchData);
+  float sw = getSwitchFromCode(s);
+  if (lw == 0) {
+    p += sw*newTerm;
+  } else {
+    p += (2.0*(sw-1.0)+1.0)*newTerm;
+  }
+  gl_FragColor = encodePoint(p);
+}
+`
+
+const SHADER_UPDATE_SWITCHES_FRAG = `precision highp float;
+precision mediump int;
+
+varying vec2 index;
+
+uniform sampler2D state;
+uniform sampler2D master;
+uniform int reset;
+
+const float BASE = 255.0;
+
+vec4 encode(float value) {
+  vec4 encoded;
+  float quotient = value;
+  for (int i = 0; i < 3; i++) {
+    encoded[i] = mod(quotient, BASE);
+    quotient = floor(quotient / BASE);
+  }
+  encoded[3] = 0.0;
+  return encoded / BASE;
+}
+
+float decode(vec4 data) {
+  float value = data.x;
+  value += data.y*BASE;
+  value += data.z*BASE*BASE;
+  return floor(value*BASE);
+}
+
+void main() {
+  vec4 sampledData = texture2D(state, index);
+  float counter = 255.0*sampledData.w;
+  if (reset == 0) {
+    float value = decode(sampledData);
+    value = floor(value / 2.0);
+    if (floor(mod(value, 2.0)) == 0.0) {
+      counter = counter + 1.0;
+    }
+    gl_FragColor = vec4(encode(value).xyz, counter/BASE);
+  }
+  else {
+    gl_FragColor = texture2D(master, index);
+  }
+}
+`
+
 // Initialize indexes as [x0,y0,x1,y1,x2,y2,...].
 // Initialize all points as 0+0i, encoded.
 // Initialize switches as [a0,b0,c0,d0,a1,b1,c1,d2,...],
@@ -70,17 +283,17 @@ class App {
         // Create the programs from their shaders' paths.
         this.programs = {
             draw: createProgram(gl,
-                                'Subseries-WebGL/glsl/draw.vert',
-                                'Subseries-WebGL/glsl/draw.frag'),
+                                SHADER_DRAW_VERT,
+                                SHADER_DRAW_FRAG),
             updateSwitches: createProgram(gl,
-                                          'Subseries-WebGL/glsl/update.vert',
-                                          'Subseries-WebGL/glsl/updateSwitches.frag'),
+                                          SHADER_UPDATE_VERT,
+                                          SHADER_UPDATE_SWITCHES_FRAG),
             updatePoints: createProgram(gl,
-                                        'Subseries-WebGL/glsl/update.vert',
-                                        'Subseries-WebGL/glsl/updatePoints.frag'),
+                                        SHADER_UPDATE_VERT,
+                                        SHADER_UPDATE_POINTS_FRAG),
             resetPoints: createProgram(gl,
-                                       'Subseries-WebGL/glsl/update.vert',
-                                       'Subseries-WebGL/glsl/resetPoints.glsl')};
+                                       SHADER_UPDATE_VERT,
+                                       SHADER_RESET_POINTS_GLSL)};
 
         // Initialize the buffers and send their data over to the GPU.
         this.buffers = {
@@ -223,12 +436,12 @@ class App {
         drawPointsWithBlending(gl, 2**this.k);
     }
 
-    setupForDrawLoop(fString, real, imag) {
+    async setupForDrawLoop(fString, real, imag) {
         // Check if function has changed.
         // If so, we need to recompute the coefficients
         if (this.fString != fString) {
             this.fString = fString;
-            this.coeffs = getCoeffs(this.fString, this.k, true);
+            this.coeffs = await getCoeffs(this.fString, this.k, true);
             if (this.coeffs === null) {
                 alert("Could not connect to backend server on Heroku.\n It was probably asleep and is now spinning back up.\n Please try reloading the page.");
             }

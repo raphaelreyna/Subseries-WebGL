@@ -228,8 +228,8 @@ function rotationLoop() {
     }
 }
 
-function run() {
-    app.setupForDrawLoop(f, real, imag);
+async function run() {
+    await app.setupForDrawLoop(f, real, imag);
     requestAnimationFrame(gldrawloop);
 }
 
